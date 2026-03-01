@@ -45,6 +45,8 @@ namespace bitonic
 
         cl::Kernel kernel(rt.program(), "bitonic_sort_step");
 
+        std::vector<cl::Event> events;
+
         for (std::size_t k = 2; k <= padded_size; k <<= 1)
         {
             for (std::size_t j = k >> 1; j > 0; j >>= 1)
@@ -53,21 +55,26 @@ namespace bitonic
                 kernel.setArg(1, static_cast<int>(j));
                 kernel.setArg(2, static_cast<int>(k));
 
-            cl::Event event;
-            rt.queue().enqueueNDRangeKernel(
-                kernel,
-                cl::NullRange,
-                cl::NDRange(padded_size),
-                cl::NullRange,
-                nullptr,
-                &event);
+                cl::Event event;
+                rt.queue().enqueueNDRangeKernel(
+                    kernel,
+                    cl::NullRange,
+                    cl::NDRange(padded_size),
+                    cl::NullRange,
+                    nullptr,
+                    &event);
 
-            event.wait();
-
-            const cl_ulong start = event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
-            const cl_ulong end = event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
-            kernel_ns += static_cast<std::uint64_t>(end - start);
+                events.push_back(event);
             }
+        }
+
+        rt.queue().finish();
+
+        for (const cl::Event& event : events)
+        {
+            const cl_ulong start = event.getProfilingInfo<CL_PROFILING_COMMAND_START>();
+            const cl_ulong end   = event.getProfilingInfo<CL_PROFILING_COMMAND_END>();
+            kernel_ns += static_cast<std::uint64_t>(end - start);
         }
 
         rt.queue().enqueueReadBuffer(
