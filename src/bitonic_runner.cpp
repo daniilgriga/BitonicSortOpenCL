@@ -13,9 +13,24 @@ namespace
     {
         std::size_t n = 1;
         while (n < x)
+        {
+            if (n > std::numeric_limits<std::size_t>::max() / 2)
+                throw std::runtime_error ("next_pow2 overflow");
             n <<= 1;
+        }
 
         return n;
+    }
+
+    int trailing_zeroes_pow2 (std::size_t x)
+    {
+        int p = 0;
+        while ((x & 1u) == 0u)
+        {
+            x >>= 1u;
+            ++p;
+        }
+        return p;
     }
 } // namespace
 
@@ -43,7 +58,7 @@ namespace bitonic
         rt.queue().enqueueWriteBuffer(
             buffer, CL_TRUE, 0, padded_size * sizeof(int), padded_data.data());
 
-        cl::Kernel kernel(rt.program(), "bitonic_sort_step");
+        cl::Kernel kernel (rt.program(), "bitonic_sort_step_half_ctz");
 
         std::vector<cl::Event> events;
 
@@ -54,12 +69,13 @@ namespace bitonic
                 kernel.setArg(0, buffer);
                 kernel.setArg(1, static_cast<int>(j));
                 kernel.setArg(2, static_cast<int>(k));
+                kernel.setArg (3, trailing_zeroes_pow2 (j));
 
                 cl::Event event;
                 rt.queue().enqueueNDRangeKernel(
                     kernel,
                     cl::NullRange,
-                    cl::NDRange(padded_size),
+                    cl::NDRange (padded_size / 2),
                     cl::NullRange,
                     nullptr,
                     &event);
