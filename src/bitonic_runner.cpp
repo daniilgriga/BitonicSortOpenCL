@@ -13,7 +13,11 @@ namespace
     {
         std::size_t n = 1;
         while (n < x)
+        {
+            if (n > std::numeric_limits<std::size_t>::max() / 2)
+                throw std::runtime_error ("next_pow2 overflow");
             n <<= 1;
+        }
 
         return n;
     }
