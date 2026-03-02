@@ -64,6 +64,7 @@ if (BUILD_TESTS)
 
     add_executable (bitonic_test
         tests/test_opencl_runtime.cpp
+        tests/test_bitonic.cpp
         src/opencl_runtime.cpp
         src/bitonic_runner.cpp
     )
