@@ -1,0 +1,91 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="420" viewBox="0 0 680 420">
+  <line x1="72" y1="324.0" x2="656" y2="324.0"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="328.0" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">0</text>
+  <line x1="72" y1="279.9" x2="656" y2="279.9"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="283.9" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">10</text>
+  <line x1="72" y1="235.9" x2="656" y2="235.9"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="239.9" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">20</text>
+  <line x1="72" y1="191.8" x2="656" y2="191.8"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="195.8" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">30</text>
+  <line x1="72" y1="147.8" x2="656" y2="147.8"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="151.8" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">40</text>
+  <line x1="72" y1="103.7" x2="656" y2="103.7"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="107.7" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">50</text>
+  <line x1="72" y1="59.6" x2="656" y2="59.6"
+        stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="63.6" text-anchor="end"
+        font-family="monospace" font-size="11" fill="#c9d1d9">60</text>
+  <text x="32" y="174" text-anchor="middle"
+        font-family="sans-serif" font-size="12" fill="#6e7681"
+        transform="rotate(-90,32,174)">time, ms</text>
+  <line x1="72" y1="24" x2="72" y2="324"
+        stroke="#484f58" stroke-width="1.5"/>
+  <line x1="72" y1="324" x2="656" y2="324"
+        stroke="#484f58" stroke-width="1.5"/>
+  <rect x="90.5" y="323.8" width="27.3" height="0.2"
+        fill="#8b949e" rx="2"/>
+  <rect x="123.6" y="293.6" width="27.3" height="30.4"
+        fill="#58a6ff" rx="2"/>
+  <text x="120.7" y="336" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#c9d1d9">1K</text>
+  <text x="120.7" y="349" text-anchor="middle"
+        font-family="monospace" font-size="9" fill="#6e7681">N=1,024</text>
+  <rect x="187.8" y="319.9" width="27.3" height="4.1"
+        fill="#8b949e" rx="2"/>
+  <rect x="220.9" y="321.6" width="27.3" height="2.4"
+        fill="#58a6ff" rx="2"/>
+  <text x="218.0" y="336" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#c9d1d9">8K</text>
+  <text x="218.0" y="349" text-anchor="middle"
+        font-family="monospace" font-size="9" fill="#6e7681">N=8,192</text>
+  <rect x="285.2" y="310.2" width="27.3" height="13.8"
+        fill="#8b949e" rx="2"/>
+  <rect x="318.3" y="317.2" width="27.3" height="6.8"
+        fill="#58a6ff" rx="2"/>
+  <text x="315.3" y="336" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#c9d1d9">65K</text>
+  <text x="315.3" y="349" text-anchor="middle"
+        font-family="monospace" font-size="9" fill="#6e7681">N=65,536</text>
+  <rect x="382.5" y="263.2" width="27.3" height="60.8"
+        fill="#8b949e" rx="2"/>
+  <rect x="415.6" y="286.1" width="27.3" height="37.9"
+        fill="#58a6ff" rx="2"/>
+  <text x="412.7" y="336" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#c9d1d9">262K</text>
+  <text x="412.7" y="349" text-anchor="middle"
+        font-family="monospace" font-size="9" fill="#6e7681">N=262,144</text>
+  <rect x="479.8" y="194.7" width="27.3" height="129.3"
+        fill="#8b949e" rx="2"/>
+  <rect x="512.9" y="208.0" width="27.3" height="116.0"
+        fill="#58a6ff" rx="2"/>
+  <text x="510.0" y="336" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#c9d1d9">524K</text>
+  <text x="510.0" y="349" text-anchor="middle"
+        font-family="monospace" font-size="9" fill="#6e7681">N=524,288</text>
+  <rect x="577.2" y="51.3" width="27.3" height="272.7"
+        fill="#8b949e" rx="2"/>
+  <rect x="610.3" y="77.4" width="27.3" height="246.6"
+        fill="#58a6ff" rx="2"/>
+  <text x="607.3" y="336" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#c9d1d9">1M</text>
+  <text x="607.3" y="349" text-anchor="middle"
+        font-family="monospace" font-size="9" fill="#6e7681">N=1,048,576</text>
+  <text x="364" y="366" text-anchor="middle"
+        font-family="sans-serif" font-size="12" fill="#6e7681">Array size (N)</text>
+  <rect x="88" y="383" width="11" height="11" fill="#8b949e" rx="2"/>
+  <text x="105" y="393" font-family="sans-serif" font-size="12" fill="#c9d1d9">std::sort (CPU baseline)</text>
+  <rect x="268" y="383" width="11" height="11" fill="#58a6ff" rx="2"/>
+  <text x="285" y="393" font-family="sans-serif" font-size="12" fill="#c9d1d9">bitonic sort (OpenCL)</text>
+</svg>
