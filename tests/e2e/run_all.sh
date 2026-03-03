@@ -26,6 +26,20 @@ fi
 echo "Running end-to-end tests for Bitonic Sort"
 echo "========================================"
 
+# preflight: verify binary can start with minimal input
+preflight_stderr=$(mktemp)
+printf '1\n1\n' | timeout 30s "$BINARY" >/dev/null 2>"$preflight_stderr"
+preflight_exit=$?
+
+if [ $preflight_exit -ne 0 ]; then
+    echo -e "${RED}PREFLIGHT FAILED: binary cannot run (exit code $preflight_exit)${NC}"
+    echo "  stderr:"
+    sed 's/^/    /' "$preflight_stderr"
+    rm -f "$preflight_stderr"
+    exit 1
+fi
+rm -f "$preflight_stderr"
+
 for dat_file in "$SCRIPT_DIR"/*.dat; do
     test_id="$(basename "$dat_file" .dat)"
     ans_file="$SCRIPT_DIR/${test_id}.ans"
@@ -36,7 +50,7 @@ for dat_file in "$SCRIPT_DIR"/*.dat; do
     fi
 
     stderr_file=$(mktemp)
-    actual_output=$("$BINARY" < "$dat_file" 2>"$stderr_file")
+    actual_output=$(timeout 30s "$BINARY" < "$dat_file" 2>"$stderr_file")
     exit_code=$?
 
     if [ $exit_code -ne 0 ]; then
