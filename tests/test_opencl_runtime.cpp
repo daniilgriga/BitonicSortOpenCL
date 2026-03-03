@@ -45,30 +45,6 @@ TEST_F (RuntimeTest, QueueProfilingEnabled)
     EXPECT_TRUE (props & CL_QUEUE_PROFILING_ENABLE);
 }
 
-// helper: check if the runtime can actually compile a trivial kernel
-// mirrors the fallback logic in build_program(): try default, then -cl-std=CL1.2
-bool can_compile_kernels (ocl::Runtime& rt)
-{
-    try
-    {
-        auto prog = cl::Program (rt.context(), "__kernel void probe() {}\n");
-        try
-        {
-            prog.build ({rt.device()});
-        }
-        catch (...)
-        {
-            prog = cl::Program (rt.context(), "__kernel void probe() {}\n");
-            prog.build ({rt.device()}, "-cl-std=CL1.2");
-        }
-        return true;
-    }
-    catch (...)
-    {
-        return false;
-    }
-}
-
 // helper: create a temporary file with given contents
 struct TempFile
 {
@@ -89,8 +65,8 @@ struct TempFile
 
 TEST_F (RuntimeTest, BuildProgramValidKernel)
 {
-    if (!can_compile_kernels (rt))
-        GTEST_SKIP() << "OpenCL runtime cannot compile kernels";
+    if (!rt.buildable())
+        GTEST_SKIP() << "selected device is not probe-buildable";
 
     TempFile tmp ("valid.cl", "__kernel void dummy() {}\n");
 
@@ -116,8 +92,8 @@ TEST_F (RuntimeTest, BuildProgramNonexistentFile)
 
 TEST_F (RuntimeTest, BuildProgramInvalidKernel)
 {
-    if (!can_compile_kernels (rt))
-        GTEST_SKIP() << "OpenCL runtime cannot compile kernels";
+    if (!rt.buildable())
+        GTEST_SKIP() << "selected device is not probe-buildable";
 
     TempFile tmp ("invalid.cl", "__kernel void broken( { SYNTAX ERROR }\n");
 
@@ -145,8 +121,8 @@ TEST_F (RuntimeTest, BuildProgramInvalidKernel)
 
 TEST_F (RuntimeTest, BuildProgramRealKernel)
 {
-    if (!can_compile_kernels (rt))
-        GTEST_SKIP() << "OpenCL runtime cannot compile kernels";
+    if (!rt.buildable())
+        GTEST_SKIP() << "selected device is not probe-buildable";
 
     std::filesystem::path kernel_path = "kernels/bitonic.cl";
     if (!std::filesystem::exists (kernel_path))
