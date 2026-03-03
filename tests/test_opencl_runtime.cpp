@@ -72,10 +72,19 @@ TEST_F (RuntimeTest, BuildProgramValidKernel)
 
 TEST_F (RuntimeTest, BuildProgramNonexistentFile)
 {
-    EXPECT_THROW (
-        rt.build_program ("/nonexistent/path/to/kernel.cl"),
-        std::runtime_error
-    );
+    try
+    {
+        rt.build_program ("/nonexistent/path/to/kernel.cl");
+
+        FAIL() << "Expected std::runtime_error";
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::string msg = e.what();
+
+        EXPECT_NE (msg.find ("kernel.cl"), std::string::npos)
+            << "Error should contain the file path: " << msg;
+    }
 }
 
 TEST_F (RuntimeTest, BuildProgramInvalidKernel)
@@ -92,8 +101,15 @@ TEST_F (RuntimeTest, BuildProgramInvalidKernel)
     {
         std::string msg = e.what();
 
-        EXPECT_NE (msg.find ("Kernel build failed"), std::string::npos)
-            << "Error message: " << msg;
+        SCOPED_TRACE (msg);
+
+        EXPECT_NE (msg.find ("Kernel build failed"), std::string::npos);
+        EXPECT_NE (msg.find ("kernel_path"), std::string::npos);
+        EXPECT_NE (msg.find ("platform"), std::string::npos);
+        EXPECT_NE (msg.find ("device"), std::string::npos);
+        EXPECT_NE (msg.find ("error_code"), std::string::npos);
+        EXPECT_NE (msg.find ("build_status"), std::string::npos);
+        EXPECT_NE (msg.find ("build_log"), std::string::npos);
     }
 }
 
