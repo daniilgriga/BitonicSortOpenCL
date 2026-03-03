@@ -46,12 +46,21 @@ TEST_F (RuntimeTest, QueueProfilingEnabled)
 }
 
 // helper: check if the runtime can actually compile a trivial kernel
+// mirrors the fallback logic in build_program(): try default, then -cl-std=CL1.2
 bool can_compile_kernels (ocl::Runtime& rt)
 {
     try
     {
         auto prog = cl::Program (rt.context(), "__kernel void probe() {}\n");
-        prog.build ({rt.device()});
+        try
+        {
+            prog.build ({rt.device()});
+        }
+        catch (...)
+        {
+            prog = cl::Program (rt.context(), "__kernel void probe() {}\n");
+            prog.build ({rt.device()}, "-cl-std=CL1.2");
+        }
         return true;
     }
     catch (...)

@@ -154,6 +154,34 @@ namespace ocl
 
         context_ = cl::Context (device_);
         queue_   = cl::CommandQueue (context_, device_, CL_QUEUE_PROFILING_ENABLE);
+
+        // probe-compile a trivial kernel to verify the device can actually build programs
+        // CL_DEVICE_COMPILER_AVAILABLE alone is not sufficient - some runtimes report it
+        // as true but fail to compile anything
+        try
+        {
+            cl::Program probe (context_, "__kernel void _probe() {}\n");
+            try
+            {
+                probe.build ({device_});
+            }
+            catch (...)
+            {
+                probe = cl::Program (context_, "__kernel void _probe() {}\n");
+                probe.build ({device_}, "-cl-std=CL1.2");
+            }
+        }
+        catch (const std::exception& e)
+        {
+            std::ostringstream msg;
+            msg << "Selected OpenCL device cannot compile kernels\n"
+                << "  platform : " << platform_.getInfo<CL_PLATFORM_NAME>() << "\n"
+                << "  device   : " << device_.getInfo<CL_DEVICE_NAME>() << "\n"
+                << "  type     : " << device_type_string (dtype) << "\n"
+                << "  version  : " << device_.getInfo<CL_DEVICE_VERSION>() << "\n"
+                << "  reason   : " << e.what() << "\n";
+            throw std::runtime_error (msg.str());
+        }
     }
 
     void Runtime::build_program (const std::filesystem::path& kernel_path)
