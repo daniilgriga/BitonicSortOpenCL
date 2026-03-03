@@ -45,6 +45,21 @@ TEST_F (RuntimeTest, QueueProfilingEnabled)
     EXPECT_TRUE (props & CL_QUEUE_PROFILING_ENABLE);
 }
 
+// helper: check if the runtime can actually compile a trivial kernel
+bool can_compile_kernels (ocl::Runtime& rt)
+{
+    try
+    {
+        auto prog = cl::Program (rt.context(), "__kernel void probe() {}\n");
+        prog.build ({rt.device()});
+        return true;
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
 // helper: create a temporary file with given contents
 struct TempFile
 {
@@ -65,6 +80,9 @@ struct TempFile
 
 TEST_F (RuntimeTest, BuildProgramValidKernel)
 {
+    if (!can_compile_kernels (rt))
+        GTEST_SKIP() << "OpenCL runtime cannot compile kernels";
+
     TempFile tmp ("valid.cl", "__kernel void dummy() {}\n");
 
     EXPECT_NO_THROW (rt.build_program (tmp.path));
@@ -89,6 +107,9 @@ TEST_F (RuntimeTest, BuildProgramNonexistentFile)
 
 TEST_F (RuntimeTest, BuildProgramInvalidKernel)
 {
+    if (!can_compile_kernels (rt))
+        GTEST_SKIP() << "OpenCL runtime cannot compile kernels";
+
     TempFile tmp ("invalid.cl", "__kernel void broken( { SYNTAX ERROR }\n");
 
     try
@@ -115,6 +136,9 @@ TEST_F (RuntimeTest, BuildProgramInvalidKernel)
 
 TEST_F (RuntimeTest, BuildProgramRealKernel)
 {
+    if (!can_compile_kernels (rt))
+        GTEST_SKIP() << "OpenCL runtime cannot compile kernels";
+
     std::filesystem::path kernel_path = "kernels/bitonic.cl";
     if (!std::filesystem::exists (kernel_path))
         GTEST_SKIP() << "kernels/bitonic.cl not found in working directory";
