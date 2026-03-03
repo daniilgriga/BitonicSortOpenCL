@@ -37,6 +37,32 @@ namespace ocl
             }
         }
 
+        // probe-compile a trivial kernel to verify the device can actually
+        // build programs. CL_DEVICE_COMPILER_AVAILABLE alone is not sufficient —
+        // some runtimes report it as true but fail to compile anything.
+        bool probe_buildable (const cl::Device& device) noexcept
+        {
+            try
+            {
+                cl::Context ctx (device);
+                cl::Program probe (ctx, "__kernel void _probe() {}\n");
+                try
+                {
+                    probe.build ({device});
+                }
+                catch (...)
+                {
+                    probe = cl::Program (ctx, "__kernel void _probe() {}\n");
+                    probe.build ({device}, "-cl-std=CL1.2");
+                }
+                return true;
+            }
+            catch (...)
+            {
+                return false;
+            }
+        }
+
         std::string collapse_build_logs (const cl::BuildError& e)
         {
             const auto logs = e.getBuildLog();
@@ -89,8 +115,9 @@ namespace ocl
         {
             cl::Platform platform;
             cl::Device device;
-            bool compiler_available;
             bool is_gpu;
+            bool compiler_available;
+            bool buildable;
         };
 
         std::vector<cl::Platform> platforms;
@@ -99,9 +126,11 @@ namespace ocl
         if (platforms.empty())
             throw std::runtime_error ("No OpenCL platforms found");
 
-        std::optional<Candidate> first_any;
-        std::optional<Candidate> first_with_compiler;
-        std::optional<Candidate> first_gpu_with_compiler;
+        std::optional<Candidate> gpu_buildable;
+        std::optional<Candidate> any_buildable;
+        std::optional<Candidate> gpu_compiler;
+        std::optional<Candidate> any_compiler;
+        std::optional<Candidate> any_device;
 
         for (auto& p : platforms)
         {
@@ -112,76 +141,60 @@ namespace ocl
             }
             catch (const cl::Error&)
             {
-                continue; // broken platform - try the next one
+                continue;
             }
 
             for (auto& d : devices)
             {
                 const cl_device_type dtype = d.getInfo<CL_DEVICE_TYPE>();
                 const bool is_gpu = (dtype & CL_DEVICE_TYPE_GPU) != 0;
-                const bool compiler_available = d.getInfo<CL_DEVICE_COMPILER_AVAILABLE>() != CL_FALSE;
+                const bool compiler = d.getInfo<CL_DEVICE_COMPILER_AVAILABLE>() != CL_FALSE;
+                const bool buildable = compiler && probe_buildable (d);
 
-                Candidate c{p, d, compiler_available, is_gpu};
+                Candidate c{p, d, is_gpu, compiler, buildable};
 
-                if (!first_any.has_value())
-                    first_any = c;
-                if (compiler_available && !first_with_compiler.has_value())
-                    first_with_compiler = c;
-                if (compiler_available && is_gpu && !first_gpu_with_compiler.has_value())
-                {
-                    first_gpu_with_compiler = c;
-                }
+                if (!any_device.has_value())
+                    any_device = c;
+                if (compiler && !any_compiler.has_value())
+                    any_compiler = c;
+                if (compiler && is_gpu && !gpu_compiler.has_value())
+                    gpu_compiler = c;
+                if (buildable && !any_buildable.has_value())
+                    any_buildable = c;
+                if (buildable && is_gpu && !gpu_buildable.has_value())
+                    gpu_buildable = c;
             }
         }
 
-        if (!first_any.has_value())
+        if (!any_device.has_value())
             throw std::runtime_error ("No OpenCL devices found on any platform");
 
         const Candidate selected =
-            first_gpu_with_compiler.value_or(
-                first_with_compiler.value_or(first_any.value()));
+            gpu_buildable.value_or (
+                any_buildable.value_or (
+                    gpu_compiler.value_or (
+                        any_compiler.value_or (
+                            any_device.value()))));
 
-        platform_ = selected.platform;
-        device_ = selected.device;
+        if (!selected.buildable)
+        {
+            std::cerr << "[OpenCL] Warning: build probe failed for all devices;"
+                         " using fallback\n";
+        }
+
+        platform_  = selected.platform;
+        device_    = selected.device;
+        buildable_ = selected.buildable;
 
         const cl_device_type dtype = device_.getInfo<CL_DEVICE_TYPE>();
 
         std::cerr << "[OpenCL] Platform : " << platform_.getInfo<CL_PLATFORM_NAME>() << "\n"
                   << "[OpenCL] Device   : " << device_.getInfo<CL_DEVICE_NAME>() << "\n"
                   << "[OpenCL] Type     : " << device_type_string (dtype) << "\n"
-                  << "[OpenCL] Version  : " << device_.getInfo<CL_DEVICE_VERSION>() << "\n"
-                  << "[OpenCL] Compiler : " << (selected.compiler_available ? "available" : "unavailable") << "\n";
+                  << "[OpenCL] Version  : " << device_.getInfo<CL_DEVICE_VERSION>() << "\n";
 
         context_ = cl::Context (device_);
         queue_   = cl::CommandQueue (context_, device_, CL_QUEUE_PROFILING_ENABLE);
-
-        // probe-compile a trivial kernel to verify the device can actually build programs
-        // CL_DEVICE_COMPILER_AVAILABLE alone is not sufficient - some runtimes report it
-        // as true but fail to compile anything
-        try
-        {
-            cl::Program probe (context_, "__kernel void _probe() {}\n");
-            try
-            {
-                probe.build ({device_});
-            }
-            catch (...)
-            {
-                probe = cl::Program (context_, "__kernel void _probe() {}\n");
-                probe.build ({device_}, "-cl-std=CL1.2");
-            }
-        }
-        catch (const std::exception& e)
-        {
-            std::ostringstream msg;
-            msg << "Selected OpenCL device cannot compile kernels\n"
-                << "  platform : " << platform_.getInfo<CL_PLATFORM_NAME>() << "\n"
-                << "  device   : " << device_.getInfo<CL_DEVICE_NAME>() << "\n"
-                << "  type     : " << device_type_string (dtype) << "\n"
-                << "  version  : " << device_.getInfo<CL_DEVICE_VERSION>() << "\n"
-                << "  reason   : " << e.what() << "\n";
-            throw std::runtime_error (msg.str());
-        }
     }
 
     void Runtime::build_program (const std::filesystem::path& kernel_path)
