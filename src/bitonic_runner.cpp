@@ -32,6 +32,33 @@ namespace
         }
         return p;
     }
+
+    std::size_t pick_local_block_size (
+        const cl::Kernel& local_kernel,
+        const ocl::Runtime& rt,
+        std::size_t padded_size)
+    {
+        std::size_t block_size = std::min<std::size_t> (256, padded_size);
+
+        const std::size_t kernel_wg_limit =
+            local_kernel.getWorkGroupInfo<CL_KERNEL_WORK_GROUP_SIZE> (rt.device());
+        block_size = std::min (block_size, kernel_wg_limit);
+
+        const cl_ulong device_local_mem = rt.device().getInfo<CL_DEVICE_LOCAL_MEM_SIZE>();
+        const std::size_t mem_wg_limit = static_cast<std::size_t>(device_local_mem / sizeof(int));
+        block_size = std::min (block_size, mem_wg_limit);
+
+        // Keep power-of-two block size for local bitonic network
+        std::size_t pow2 = 1;
+        while ((pow2 << 1u) <= block_size)
+            pow2 <<= 1u;
+        block_size = pow2;
+
+        while (block_size > 1 && (padded_size % block_size) != 0)
+            block_size >>= 1u;
+
+        return block_size;
+    }
 } // namespace
 
 namespace bitonic
@@ -58,22 +85,43 @@ namespace bitonic
         rt.queue().enqueueWriteBuffer(
             buffer, CL_TRUE, 0, padded_size * sizeof(int), padded_data.data());
 
-        cl::Kernel kernel (rt.program(), "bitonic_sort_step_half_ctz");
+        cl::Kernel global_kernel (rt.program(), "bitonic_sort_step_half_ctz");
+        cl::Kernel local_kernel (rt.program(), "bitonic_sort_local");
 
         std::vector<cl::Event> events;
+        std::size_t global_start_k = 2;
 
-        for (std::size_t k = 2; k <= padded_size; k <<= 1)
+        const std::size_t block_size = pick_local_block_size (local_kernel, rt, padded_size);
+        if (block_size >= 2)
+        {
+            local_kernel.setArg (0, buffer);
+            local_kernel.setArg (1, cl::Local (block_size * sizeof(int)));
+
+            cl::Event local_event;
+            rt.queue().enqueueNDRangeKernel (
+                local_kernel,
+                cl::NullRange,
+                cl::NDRange (padded_size),
+                cl::NDRange (block_size),
+                nullptr,
+                &local_event
+            );
+            events.push_back (local_event);
+            global_start_k = block_size << 1u;
+        }
+
+        for (std::size_t k = global_start_k; k <= padded_size; k <<= 1)
         {
             for (std::size_t j = k >> 1; j > 0; j >>= 1)
             {
-                kernel.setArg(0, buffer);
-                kernel.setArg(1, static_cast<int>(j));
-                kernel.setArg(2, static_cast<int>(k));
-                kernel.setArg (3, trailing_zeroes_pow2 (j));
+                global_kernel.setArg(0, buffer);
+                global_kernel.setArg(1, static_cast<int>(j));
+                global_kernel.setArg(2, static_cast<int>(k));
+                global_kernel.setArg (3, trailing_zeroes_pow2 (j));
 
                 cl::Event event;
                 rt.queue().enqueueNDRangeKernel(
-                    kernel,
+                    global_kernel,
                     cl::NullRange,
                     cl::NDRange (padded_size / 2),
                     cl::NullRange,

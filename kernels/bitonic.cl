@@ -50,7 +50,7 @@ __kernel void bitonic_sort_local (__global int* data, __local int* shared)
                 int a = shared[lid];
                 int b = shared[ixj];
 
-                int ascending = ((lid & k) == 0);
+                int ascending = ((gid & k) == 0);
                 if ((ascending && a > b) || (!ascending && a < b))
                 {
                     shared[lid] = b;
