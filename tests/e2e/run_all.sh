@@ -35,7 +35,20 @@ for dat_file in "$SCRIPT_DIR"/*.dat; do
         continue
     fi
 
-    actual_output=$("$BINARY" < "$dat_file" 2>/dev/null)
+    stderr_file=$(mktemp)
+    actual_output=$("$BINARY" < "$dat_file" 2>"$stderr_file")
+    exit_code=$?
+
+    if [ $exit_code -ne 0 ]; then
+        echo -e "Test $test_id: ${RED}[FAILED]${NC} (exit code $exit_code)"
+        echo "  stderr:"
+        sed 's/^/    /' "$stderr_file"
+        rm -f "$stderr_file"
+        ((FAILED++))
+        continue
+    fi
+
+    rm -f "$stderr_file"
     expected_output=$(cat "$ans_file")
 
     if [ "$actual_output" == "$expected_output" ]; then

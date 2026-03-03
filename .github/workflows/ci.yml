@@ -74,3 +74,6 @@ jobs:
 
       - name: Build
         run: cmake --build build/release
+
+      - name: Run E2E tests
+        run: ./tests/e2e/run_all.sh ./build/release/bitonic_sort
