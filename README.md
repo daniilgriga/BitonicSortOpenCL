@@ -210,7 +210,7 @@ python3 docs/gen_benchmark.py
     <img src="docs/benchmark.svg" alt="Benchmark on AMD Vega (gfx90c:xnack+)" width="660"/>
 </p>
 
-On this setup, OpenCL becomes faster than `std::sort` starting from `N = 65,536`.
+On this setup, OpenCL becomes faster than `std::sort` starting from `N = 8,192`.
 For small `N`, transfer and launch overhead dominates.
 
 ### NVIDIA GTX 1080 Ti
@@ -232,6 +232,13 @@ Interpretation guidance:
 - `OCL kernel`: sum of OpenCL event profiling durations for kernel execution on the device.
 - `Speedup` in this table is computed as `std::sort / OCL total`, because it reflects real application-visible performance.
 - If `OCL total` is much larger than `OCL kernel`, the bottleneck is transfer/launch/host overhead rather than pure kernel compute.
+
+### Why Crossover Differs Across Machines
+
+- `OCL total` includes copy and launch overhead, not only kernel compute.
+- On integrated GPUs, host/device memory is often shared, so data-transfer overhead is lower.
+- On discrete GPUs, host-device copies usually go over PCIe, which can dominate at small `N` (for example around `N = 8,192`).
+- `std::sort` baseline depends on CPU performance; with a faster CPU, GPU crossover tends to happen at larger `N`.
 
 ---
 
