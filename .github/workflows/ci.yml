@@ -31,6 +31,9 @@ jobs:
       - name: Run tests
         run: ctest --test-dir build/debug --output-on-failure
 
+      - name: Run E2E tests
+        run: ./tests/e2e/run_all.sh ./build/debug/bitonic_sort
+
   ubuntu-sanitize:
     name: Ubuntu (GCC + Sanitizers)
     runs-on: ubuntu-latest
@@ -74,3 +77,6 @@ jobs:
 
       - name: Build
         run: cmake --build build/release
+
+      - name: Run E2E tests
+        run: ./tests/e2e/run_all.sh ./build/release/bitonic_sort

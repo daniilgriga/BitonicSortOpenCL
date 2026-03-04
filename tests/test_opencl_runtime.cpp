@@ -65,6 +65,9 @@ struct TempFile
 
 TEST_F (RuntimeTest, BuildProgramValidKernel)
 {
+    if (!rt.buildable())
+        GTEST_SKIP() << "selected device is not probe-buildable";
+
     TempFile tmp ("valid.cl", "__kernel void dummy() {}\n");
 
     EXPECT_NO_THROW (rt.build_program (tmp.path));
@@ -89,6 +92,9 @@ TEST_F (RuntimeTest, BuildProgramNonexistentFile)
 
 TEST_F (RuntimeTest, BuildProgramInvalidKernel)
 {
+    if (!rt.buildable())
+        GTEST_SKIP() << "selected device is not probe-buildable";
+
     TempFile tmp ("invalid.cl", "__kernel void broken( { SYNTAX ERROR }\n");
 
     try
@@ -115,6 +121,9 @@ TEST_F (RuntimeTest, BuildProgramInvalidKernel)
 
 TEST_F (RuntimeTest, BuildProgramRealKernel)
 {
+    if (!rt.buildable())
+        GTEST_SKIP() << "selected device is not probe-buildable";
+
     std::filesystem::path kernel_path = "kernels/bitonic.cl";
     if (!std::filesystem::exists (kernel_path))
         GTEST_SKIP() << "kernels/bitonic.cl not found in working directory";
