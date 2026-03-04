@@ -214,21 +214,6 @@ namespace ocl
 
         const std::string source = oss.str();
 
-        try
-        {
-            program_ = cl::Program (context_, source);
-        }
-        catch (const cl::Error& e)
-        {
-            std::ostringstream msg;
-            msg << "Failed to create OpenCL program from source\n"
-                << "  kernel_path : " << abs_kernel_path.string() << "\n"
-                << "  platform    : " << platform_.getInfo<CL_PLATFORM_NAME>() << "\n"
-                << "  device      : " << device_.getInfo<CL_DEVICE_NAME>() << "\n"
-                << "  error_code  : " << e.err() << " (" << error_string (e.err()) << ")\n";
-            throw std::runtime_error (msg.str());
-        }
-
         auto make_error_message =
             [&](cl_int code, const std::string& options, const std::string& log)
             {
@@ -265,6 +250,8 @@ namespace ocl
         {
             try
             {
+                program_ = cl::Program (context_, source);
+
                 if (options.empty())
                     program_.build ({device_});
                 else
