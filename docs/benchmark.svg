@@ -1,42 +1,44 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="680" height="438" viewBox="0 0 680 438">
-  <text x="340" y="24" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#c9d1d9">AMD Vega (gfx90c:xnack+)</text>
+  <text x="340" y="24" text-anchor="middle" font-family="sans-serif" font-size="15" fill="#c9d1d9">AMD Vega (gfx90c)</text>
   <line x1="72" y1="342.0" x2="656" y2="342.0" stroke="#30363d" stroke-width="1"/>
   <text x="64" y="346.0" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">0</text>
-  <line x1="72" y1="289.1" x2="656" y2="289.1" stroke="#30363d" stroke-width="1"/>
-  <text x="64" y="293.1" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">20</text>
-  <line x1="72" y1="236.2" x2="656" y2="236.2" stroke="#30363d" stroke-width="1"/>
-  <text x="64" y="240.2" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">40</text>
-  <line x1="72" y1="183.3" x2="656" y2="183.3" stroke="#30363d" stroke-width="1"/>
-  <text x="64" y="187.3" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">60</text>
-  <line x1="72" y1="130.4" x2="656" y2="130.4" stroke="#30363d" stroke-width="1"/>
-  <text x="64" y="134.4" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">80</text>
+  <line x1="72" y1="297.9" x2="656" y2="297.9" stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="301.9" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">10</text>
+  <line x1="72" y1="253.9" x2="656" y2="253.9" stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="257.9" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">20</text>
+  <line x1="72" y1="209.8" x2="656" y2="209.8" stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="213.8" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">30</text>
+  <line x1="72" y1="165.8" x2="656" y2="165.8" stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="169.8" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">40</text>
+  <line x1="72" y1="121.7" x2="656" y2="121.7" stroke="#30363d" stroke-width="1"/>
+  <text x="64" y="125.7" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">50</text>
   <line x1="72" y1="77.6" x2="656" y2="77.6" stroke="#30363d" stroke-width="1"/>
-  <text x="64" y="81.6" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">100</text>
+  <text x="64" y="81.6" text-anchor="end" font-family="monospace" font-size="11" fill="#c9d1d9">60</text>
   <text x="32" y="192" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#6e7681" transform="rotate(-90,32,192)">time, ms</text>
   <line x1="72" y1="42" x2="72" y2="342" stroke="#484f58" stroke-width="1.5"/>
   <line x1="72" y1="342" x2="656" y2="342" stroke="#484f58" stroke-width="1.5"/>
   <rect x="90.5" y="341.8" width="27.3" height="0.2" fill="#8b949e" rx="2"/>
-  <rect x="123.6" y="307.3" width="27.3" height="34.7" fill="#58a6ff" rx="2"/>
+  <rect x="123.6" y="311.6" width="27.3" height="30.4" fill="#58a6ff" rx="2"/>
   <text x="120.7" y="354" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9">1K</text>
   <text x="120.7" y="367" text-anchor="middle" font-family="monospace" font-size="9" fill="#6e7681">N=1,024</text>
-  <rect x="187.8" y="339.5" width="27.3" height="2.5" fill="#8b949e" rx="2"/>
-  <rect x="220.9" y="339.5" width="27.3" height="2.5" fill="#58a6ff" rx="2"/>
+  <rect x="187.8" y="337.9" width="27.3" height="4.1" fill="#8b949e" rx="2"/>
+  <rect x="220.9" y="339.6" width="27.3" height="2.4" fill="#58a6ff" rx="2"/>
   <text x="218.0" y="354" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9">8K</text>
   <text x="218.0" y="367" text-anchor="middle" font-family="monospace" font-size="9" fill="#6e7681">N=8,192</text>
   <rect x="285.2" y="328.2" width="27.3" height="13.8" fill="#8b949e" rx="2"/>
-  <rect x="318.3" y="335.7" width="27.3" height="6.3" fill="#58a6ff" rx="2"/>
+  <rect x="318.3" y="335.2" width="27.3" height="6.8" fill="#58a6ff" rx="2"/>
   <text x="315.3" y="354" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9">65K</text>
   <text x="315.3" y="367" text-anchor="middle" font-family="monospace" font-size="9" fill="#6e7681">N=65,536</text>
-  <rect x="382.5" y="278.4" width="27.3" height="63.6" fill="#8b949e" rx="2"/>
-  <rect x="415.6" y="306.4" width="27.3" height="35.6" fill="#58a6ff" rx="2"/>
+  <rect x="382.5" y="281.2" width="27.3" height="60.8" fill="#8b949e" rx="2"/>
+  <rect x="415.6" y="304.1" width="27.3" height="37.9" fill="#58a6ff" rx="2"/>
   <text x="412.7" y="354" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9">262K</text>
   <text x="412.7" y="367" text-anchor="middle" font-family="monospace" font-size="9" fill="#6e7681">N=262,144</text>
-  <rect x="479.8" y="213.1" width="27.3" height="128.9" fill="#8b949e" rx="2"/>
-  <rect x="512.9" y="251.6" width="27.3" height="90.4" fill="#58a6ff" rx="2"/>
+  <rect x="479.8" y="212.7" width="27.3" height="129.3" fill="#8b949e" rx="2"/>
+  <rect x="512.9" y="226.0" width="27.3" height="116.0" fill="#58a6ff" rx="2"/>
   <text x="510.0" y="354" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9">524K</text>
   <text x="510.0" y="367" text-anchor="middle" font-family="monospace" font-size="9" fill="#6e7681">N=524,288</text>
   <rect x="577.2" y="69.3" width="27.3" height="272.7" fill="#8b949e" rx="2"/>
-  <rect x="610.3" y="115.1" width="27.3" height="226.9" fill="#58a6ff" rx="2"/>
+  <rect x="610.3" y="95.4" width="27.3" height="246.6" fill="#58a6ff" rx="2"/>
   <text x="607.3" y="354" text-anchor="middle" font-family="monospace" font-size="11" fill="#c9d1d9">1M</text>
   <text x="607.3" y="367" text-anchor="middle" font-family="monospace" font-size="9" fill="#6e7681">N=1,048,576</text>
   <text x="364" y="384" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#6e7681">Array size (N)</text>
