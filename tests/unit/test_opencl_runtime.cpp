@@ -3,6 +3,7 @@
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
+#include <random>
 #include <string>
 
 #include <gtest/gtest.h>
@@ -17,6 +18,20 @@ protected:
         rt.init();
     }
 };
+
+TEST (ErrorStringTest, KnownCodesReturnReadableNames)
+{
+    EXPECT_STREQ (ocl::error_string (CL_SUCCESS), "CL_SUCCESS");
+    EXPECT_STREQ (
+        ocl::error_string (CL_BUILD_PROGRAM_FAILURE),
+        "CL_BUILD_PROGRAM_FAILURE"
+    );
+}
+
+TEST (ErrorStringTest, UnknownCodesReturnFallbackName)
+{
+    EXPECT_STREQ (ocl::error_string (123456), "UNKNOWN_CL_ERROR");
+}
 
 TEST_F (RuntimeTest, InitDoesNotThrow)
 {
@@ -52,7 +67,10 @@ struct TempFile
 
     TempFile (const std::string& suffix, const std::string& content)
     {
-        path = std::filesystem::temp_directory_path() / ("bitonic_test_" + suffix);
+        // unique name to avoid collisions across parallel test runs
+        std::mt19937_64 rng {std::random_device{}()};
+        path = std::filesystem::temp_directory_path() /
+            ("bitonic_test_" + std::to_string (rng()) + "_" + suffix);
         std::ofstream out (path, std::ios::binary);
         out << content;
     }
