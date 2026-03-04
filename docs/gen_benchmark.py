@@ -19,7 +19,7 @@ BENCHMARKS = [
         ],
     },
     {
-        "title": "NVIDIA GTX 1080",
+        "title": "NVIDIA GTX 1080 Ti",
         "outfile": "benchmark_gtx1080.svg",
         "data": [
             # N, std::sort (ms), OpenCL total (ms)

@@ -6,7 +6,7 @@
 
 Integer sorting with the **bitonic sort network** on OpenCL devices (GPU preferred, CPU runtime supported for development/debug).
 
-This repository contains a full host+device pipeline:
+This repository contains a full host + device pipeline:
 - OpenCL platform/device discovery and runtime setup
 - Kernel compilation with detailed diagnostics
 - Bitonic network execution on device memory
@@ -212,13 +212,13 @@ python3 docs/gen_benchmark.py
 
 OpenCL outperforms `std::sort` starting around N = 8,192. For small N, host-device transfer overhead dominates.
 
-### NVIDIA GTX 1080
+### NVIDIA GTX 1080 Ti
 
 <p align="center">
-    <img src="docs/benchmark_gtx1080.svg" alt="Benchmark on NVIDIA GTX 1080" width="660"/>
+    <img src="docs/benchmark_gtx1080.svg" alt="Benchmark on NVIDIA GTX 1080 Ti" width="660"/>
 </p>
 
-For GTX 1080, OpenCL is slower only at `N = 1,024` and then significantly faster starting from `N = 8,192`.
+For GTX 1080 Ti, OpenCL is slower only at `N = 1,024` and then significantly faster starting from `N = 8,192`.
 
 Interpretation guidance:
 - compare both `OCL total` and `OCL kernel` columns
