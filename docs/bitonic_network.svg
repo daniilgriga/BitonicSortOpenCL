@@ -1,0 +1,199 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="544" height="420" viewBox="0 0 544 420">
+  <text x="272" y="22" text-anchor="middle"
+        font-family="sans-serif" font-size="14" font-weight="600" fill="#c9d1d9">
+    Bitonic Sorting Network — N = 8
+  </text>
+  <text x="72" y="42" text-anchor="end"
+        font-family="sans-serif" font-size="11" fill="#6e7681">input</text>
+  <text x="472" y="42" text-anchor="start"
+        font-family="sans-serif" font-size="11" fill="#6e7681">sorted</text>
+  <text x="68" y="69" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[0]</text>
+  <text x="68" y="113" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[1]</text>
+  <text x="68" y="157" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[2]</text>
+  <text x="68" y="201" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[3]</text>
+  <text x="68" y="245" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[4]</text>
+  <text x="68" y="289" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[5]</text>
+  <text x="68" y="333" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[6]</text>
+  <text x="68" y="377" text-anchor="end"
+        font-family="monospace" font-size="12" fill="#c9d1d9">a[7]</text>
+  <text x="476" y="69" text-anchor="start"
+        font-family="monospace" font-size="11" fill="#6e7681">min</text>
+  <text x="476" y="377" text-anchor="start"
+        font-family="monospace" font-size="11" fill="#6e7681">max</text>
+  <line x1="72" y1="64" x2="472" y2="64"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="108" x2="472" y2="108"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="152" x2="472" y2="152"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="196" x2="472" y2="196"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="240" x2="472" y2="240"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="284" x2="472" y2="284"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="328" x2="472" y2="328"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <line x1="72" y1="372" x2="472" y2="372"
+        stroke="#8b949e" stroke-width="1.5"/>
+  <rect x="83" y="46" width="58" height="336"
+        rx="4" fill="#58a6ff" fill-opacity="0.06"
+        stroke="#58a6ff" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="112" y="400" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#58a6ff">k=2</text>
+  <rect x="147" y="46" width="122" height="336"
+        rx="4" fill="#bc8cff" fill-opacity="0.06"
+        stroke="#bc8cff" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="208" y="400" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#bc8cff">k=4</text>
+  <rect x="275" y="46" width="186" height="336"
+        rx="4" fill="#3fb950" fill-opacity="0.06"
+        stroke="#3fb950" stroke-opacity="0.25" stroke-width="1"/>
+  <text x="368" y="400" text-anchor="middle"
+        font-family="monospace" font-size="11" fill="#3fb950">k=8</text>
+  <line x1="112.0" y1="64" x2="112.0" y2="372"
+        stroke="#58a6ff" stroke-width="0.75" stroke-opacity="0.3"
+        stroke-dasharray="3,4"/>
+  <line x1="97.0" y1="69" x2="97.0" y2="99"
+        stroke="#58a6ff" stroke-width="2"/>
+  <polygon points="91.0,99 103.0,99 97.0,108" fill="#58a6ff"/>
+  <circle cx="97.0" cy="64" r="5" fill="#58a6ff"/>
+  <circle cx="97.0" cy="108" r="5" fill="#58a6ff"/>
+  <line x1="107.0" y1="161" x2="107.0" y2="191"
+        stroke="#58a6ff" stroke-width="2"/>
+  <polygon points="101.0,161 113.0,161 107.0,152" fill="#58a6ff"/>
+  <circle cx="107.0" cy="152" r="5" fill="#58a6ff"/>
+  <circle cx="107.0" cy="196" r="5" fill="#58a6ff"/>
+  <line x1="117.0" y1="245" x2="117.0" y2="275"
+        stroke="#58a6ff" stroke-width="2"/>
+  <polygon points="111.0,275 123.0,275 117.0,284" fill="#58a6ff"/>
+  <circle cx="117.0" cy="240" r="5" fill="#58a6ff"/>
+  <circle cx="117.0" cy="284" r="5" fill="#58a6ff"/>
+  <line x1="127.0" y1="337" x2="127.0" y2="367"
+        stroke="#58a6ff" stroke-width="2"/>
+  <polygon points="121.0,337 133.0,337 127.0,328" fill="#58a6ff"/>
+  <circle cx="127.0" cy="328" r="5" fill="#58a6ff"/>
+  <circle cx="127.0" cy="372" r="5" fill="#58a6ff"/>
+  <line x1="176.0" y1="64" x2="176.0" y2="372"
+        stroke="#bc8cff" stroke-width="0.75" stroke-opacity="0.3"
+        stroke-dasharray="3,4"/>
+  <line x1="161.0" y1="69" x2="161.0" y2="143"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="155.0,143 167.0,143 161.0,152" fill="#bc8cff"/>
+  <circle cx="161.0" cy="64" r="5" fill="#bc8cff"/>
+  <circle cx="161.0" cy="152" r="5" fill="#bc8cff"/>
+  <line x1="171.0" y1="113" x2="171.0" y2="187"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="165.0,187 177.0,187 171.0,196" fill="#bc8cff"/>
+  <circle cx="171.0" cy="108" r="5" fill="#bc8cff"/>
+  <circle cx="171.0" cy="196" r="5" fill="#bc8cff"/>
+  <line x1="181.0" y1="249" x2="181.0" y2="323"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="175.0,249 187.0,249 181.0,240" fill="#bc8cff"/>
+  <circle cx="181.0" cy="240" r="5" fill="#bc8cff"/>
+  <circle cx="181.0" cy="328" r="5" fill="#bc8cff"/>
+  <line x1="191.0" y1="293" x2="191.0" y2="367"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="185.0,293 197.0,293 191.0,284" fill="#bc8cff"/>
+  <circle cx="191.0" cy="284" r="5" fill="#bc8cff"/>
+  <circle cx="191.0" cy="372" r="5" fill="#bc8cff"/>
+  <line x1="240.0" y1="64" x2="240.0" y2="372"
+        stroke="#bc8cff" stroke-width="0.75" stroke-opacity="0.3"
+        stroke-dasharray="3,4"/>
+  <line x1="225.0" y1="69" x2="225.0" y2="99"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="219.0,99 231.0,99 225.0,108" fill="#bc8cff"/>
+  <circle cx="225.0" cy="64" r="5" fill="#bc8cff"/>
+  <circle cx="225.0" cy="108" r="5" fill="#bc8cff"/>
+  <line x1="235.0" y1="157" x2="235.0" y2="187"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="229.0,187 241.0,187 235.0,196" fill="#bc8cff"/>
+  <circle cx="235.0" cy="152" r="5" fill="#bc8cff"/>
+  <circle cx="235.0" cy="196" r="5" fill="#bc8cff"/>
+  <line x1="245.0" y1="249" x2="245.0" y2="279"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="239.0,249 251.0,249 245.0,240" fill="#bc8cff"/>
+  <circle cx="245.0" cy="240" r="5" fill="#bc8cff"/>
+  <circle cx="245.0" cy="284" r="5" fill="#bc8cff"/>
+  <line x1="255.0" y1="337" x2="255.0" y2="367"
+        stroke="#bc8cff" stroke-width="2"/>
+  <polygon points="249.0,337 261.0,337 255.0,328" fill="#bc8cff"/>
+  <circle cx="255.0" cy="328" r="5" fill="#bc8cff"/>
+  <circle cx="255.0" cy="372" r="5" fill="#bc8cff"/>
+  <line x1="304.0" y1="64" x2="304.0" y2="372"
+        stroke="#3fb950" stroke-width="0.75" stroke-opacity="0.3"
+        stroke-dasharray="3,4"/>
+  <line x1="289.0" y1="69" x2="289.0" y2="231"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="283.0,231 295.0,231 289.0,240" fill="#3fb950"/>
+  <circle cx="289.0" cy="64" r="5" fill="#3fb950"/>
+  <circle cx="289.0" cy="240" r="5" fill="#3fb950"/>
+  <line x1="299.0" y1="113" x2="299.0" y2="275"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="293.0,275 305.0,275 299.0,284" fill="#3fb950"/>
+  <circle cx="299.0" cy="108" r="5" fill="#3fb950"/>
+  <circle cx="299.0" cy="284" r="5" fill="#3fb950"/>
+  <line x1="309.0" y1="157" x2="309.0" y2="319"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="303.0,319 315.0,319 309.0,328" fill="#3fb950"/>
+  <circle cx="309.0" cy="152" r="5" fill="#3fb950"/>
+  <circle cx="309.0" cy="328" r="5" fill="#3fb950"/>
+  <line x1="319.0" y1="201" x2="319.0" y2="363"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="313.0,363 325.0,363 319.0,372" fill="#3fb950"/>
+  <circle cx="319.0" cy="196" r="5" fill="#3fb950"/>
+  <circle cx="319.0" cy="372" r="5" fill="#3fb950"/>
+  <line x1="368.0" y1="64" x2="368.0" y2="372"
+        stroke="#3fb950" stroke-width="0.75" stroke-opacity="0.3"
+        stroke-dasharray="3,4"/>
+  <line x1="353.0" y1="69" x2="353.0" y2="143"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="347.0,143 359.0,143 353.0,152" fill="#3fb950"/>
+  <circle cx="353.0" cy="64" r="5" fill="#3fb950"/>
+  <circle cx="353.0" cy="152" r="5" fill="#3fb950"/>
+  <line x1="363.0" y1="113" x2="363.0" y2="187"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="357.0,187 369.0,187 363.0,196" fill="#3fb950"/>
+  <circle cx="363.0" cy="108" r="5" fill="#3fb950"/>
+  <circle cx="363.0" cy="196" r="5" fill="#3fb950"/>
+  <line x1="373.0" y1="245" x2="373.0" y2="319"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="367.0,319 379.0,319 373.0,328" fill="#3fb950"/>
+  <circle cx="373.0" cy="240" r="5" fill="#3fb950"/>
+  <circle cx="373.0" cy="328" r="5" fill="#3fb950"/>
+  <line x1="383.0" y1="289" x2="383.0" y2="363"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="377.0,363 389.0,363 383.0,372" fill="#3fb950"/>
+  <circle cx="383.0" cy="284" r="5" fill="#3fb950"/>
+  <circle cx="383.0" cy="372" r="5" fill="#3fb950"/>
+  <line x1="432.0" y1="64" x2="432.0" y2="372"
+        stroke="#3fb950" stroke-width="0.75" stroke-opacity="0.3"
+        stroke-dasharray="3,4"/>
+  <line x1="417.0" y1="69" x2="417.0" y2="99"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="411.0,99 423.0,99 417.0,108" fill="#3fb950"/>
+  <circle cx="417.0" cy="64" r="5" fill="#3fb950"/>
+  <circle cx="417.0" cy="108" r="5" fill="#3fb950"/>
+  <line x1="427.0" y1="157" x2="427.0" y2="187"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="421.0,187 433.0,187 427.0,196" fill="#3fb950"/>
+  <circle cx="427.0" cy="152" r="5" fill="#3fb950"/>
+  <circle cx="427.0" cy="196" r="5" fill="#3fb950"/>
+  <line x1="437.0" y1="245" x2="437.0" y2="275"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="431.0,275 443.0,275 437.0,284" fill="#3fb950"/>
+  <circle cx="437.0" cy="240" r="5" fill="#3fb950"/>
+  <circle cx="437.0" cy="284" r="5" fill="#3fb950"/>
+  <line x1="447.0" y1="333" x2="447.0" y2="363"
+        stroke="#3fb950" stroke-width="2"/>
+  <polygon points="441.0,363 453.0,363 447.0,372" fill="#3fb950"/>
+  <circle cx="447.0" cy="328" r="5" fill="#3fb950"/>
+  <circle cx="447.0" cy="372" r="5" fill="#3fb950"/>
+</svg>
