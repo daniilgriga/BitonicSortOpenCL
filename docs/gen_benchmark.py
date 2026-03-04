@@ -6,7 +6,7 @@ import math
 
 BENCHMARKS = [
     {
-        "title": "AMD Vega (gfx90c)",
+        "title": "AMD Vega (gfx90c:xnack+)",
         "outfile": "benchmark.svg",
         "data": [
             # N, std::sort (ms), OpenCL total (ms)
