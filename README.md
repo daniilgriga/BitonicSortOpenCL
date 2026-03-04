@@ -225,6 +225,13 @@ Interpretation guidance:
 - for small `N`, transfer/launch overhead dominates
 - for larger `N`, throughput benefits are visible on real GPU runtimes
 
+### Metric meaning
+
+- `OCL total`: end-to-end OpenCL path measured on host wall-clock (buffer upload, kernel launches, synchronization, buffer readback, and host-side overhead).
+- `OCL kernel`: sum of OpenCL event profiling durations for kernel execution on the device.
+- `Speedup` in this table is computed as `std::sort / OCL total`, because it reflects real application-visible performance.
+- If `OCL total` is much larger than `OCL kernel`, the bottleneck is transfer/launch/host overhead rather than pure kernel compute.
+
 ---
 
 ## Known Runtime Issues
