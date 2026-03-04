@@ -1,32 +1,71 @@
-# BitonicSort - OpenCL
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+![C++17](https://img.shields.io/badge/C++17-%2300599C.svg?style=for-the-badge&logo=c%2B%2B&logoColor=white)
+![CMake](https://img.shields.io/badge/CMake-%23008FBA.svg?style=for-the-badge&logo=cmake&logoColor=white)
 
-![CI](https://github.com/daniilgriga/BitonicSort/actions/workflows/ci.yml/badge.svg)
+# Bitonic Sort - OpenCL
 
-GPU-accelerated integer sorting via the **bitonic sort** algorithm, implemented in OpenCL C and driven by a C++17 host program.
+Integer sorting with the **bitonic sort network** on OpenCL devices (GPU preferred, CPU runtime supported for development/debug).
 
-## Table of Contents
+This repository contains a full host+device pipeline:
+- OpenCL platform/device discovery and runtime setup
+- Kernel compilation with detailed diagnostics
+- Bitonic network execution on device memory
+- CLI mode for stdin/stdout sorting
+- Unit tests + end-to-end datasets
 
-- [Algorithm](#algorithm)
-- [Requirements](#requirements)
-- [Build](#build)
-- [Usage](#usage)
-- [Testing](#testing)
-- [Benchmark](#benchmark)
-- [Implementation notes](#implementation-notes)
+<p align="center">
+    <img src="docs/pipeline.svg" alt="OpenCL execution pipeline" width="860"/>
+</p>
 
 ---
 
 ## Algorithm
 
-Bitonic sort is a **comparison network**: the sequence of compare-exchange operations is fixed at compile time and does not depend on the input data. This makes it directly mappable to GPU parallelism - each step launches one OpenCL kernel where every work-item independently swaps one pair of elements.
+Bitonic sort is a **comparison network**: the compare-exchange schedule is data-independent, so each stage can be executed in parallel.
 
-The diagram below shows the full network for **N = 8** (used here as an illustration; the implementation supports arbitrary N up to ~1M). Each vertical connector is a **comparator** - it reads two elements and, if they are out of order, swaps them. The arrow points to where the **smaller** value goes. All comparators within one shaded column are **data-independent** and execute in parallel as a single kernel launch.
+The network illustration below shows `N = 8`:
 
 <p align="center">
     <img src="docs/bitonic_network.svg" alt="Bitonic sorting network for N = 8" width="520"/>
 </p>
 
-The sort proceeds in three phases: k = 2 builds sorted pairs with alternating directions, k = 4 merges pairs into sorted groups of 4, and k = 8 performs the final merge producing a fully sorted sequence.
+Implementation details used in this project:
+- Kernel: `bitonic_sort_step_half_ctz`
+- Host launches all `(k, j)` stages in sequence (`k = 2, 4, 8, ...`)
+- Each stage compares independent pairs and swaps if required
+- OpenCL events are collected to measure aggregate kernel time
+
+---
+
+## Input/Output Contract
+
+`bitonic_sort` reads from `stdin` and writes to `stdout`.
+
+Input format:
+```text
+N
+a0 a1 ... a(N-1)
+```
+
+Output format:
+```text
+b0 b1 ... b(N-1)
+```
+
+Contract:
+- `N` must be a non-negative integer
+- values are `int32`
+- output is sorted in non-decreasing order
+- output length is exactly `N`
+- for `N = 0`, output is empty
+
+### Non-power-of-two `N`
+
+Bitonic networks are natural for sizes `2^k`.
+This implementation supports arbitrary `N` by:
+1. padding to next power of two with `INT_MAX`,
+2. sorting on device,
+3. trimming back to original length `N`.
 
 ---
 
@@ -39,27 +78,33 @@ The sort proceeds in three phases: k = 2 builds sorted pairs with alternating di
 | OpenCL     | >= 1.2  |
 | GTest      | any     |
 
-Tested on **POCL** (CPU) and **AMD ROCm** (Vega GPU). Any OpenCL 1.2-compatible runtime should work.
+Tested on:
+- POCL (CPU runtime)
+- AMD OpenCL stack (Vega GPU)
+
+> [!NOTE]
+> Some OpenCL runtimes report compiler availability but still fail to build kernels (see [Known Runtime Issues](#known-runtime-issues)).
 
 ---
 
 ## Build
 
 ```bash
-# Release
+# release
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
-# Debug + unit tests
+# debug + unit tests
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON
 cmake --build build
 
-# With sanitizers
+# with sanitizers
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DSANITIZE=ON
 cmake --build build
 ```
 
-The binary is `build/bitonic_sort`. The kernel is automatically copied to `build/kernels/bitonic.cl` by CMake.
+Binary: `build/bitonic_sort`
+Kernel source copied by CMake to: `build/kernels/bitonic.cl`
 
 ---
 
@@ -68,19 +113,6 @@ The binary is `build/bitonic_sort`. The kernel is automatically copied to `build
 ### Sort mode
 
 Reads from **stdin**, writes to **stdout**. Diagnostics go to **stderr**.
-
-Input format:
-```
-N
-a[0] a[1] ... a[N-1]
-```
-
-Output format:
-```
-a[0] a[1] ... a[N-1]
-```
-
-All values are 32-bit signed integers. For N = 0, output is empty.
 
 Example:
 ```bash
@@ -101,6 +133,11 @@ Compares `std::sort` (CPU baseline) against OpenCL across a range of array sizes
 ```bash
 ./build/bitonic_sort --benchmark
 ```
+
+Benchmark sizes are fixed in source:
+`1024, 8192, 65536, 262144, 524288, 1048576`.
+
+Example output:
 
 ```
          N     std::sort     OCL total    OCL kernel   Speedup
@@ -123,7 +160,11 @@ Compares `std::sort` (CPU baseline) against OpenCL across a range of array sizes
 ctest --test-dir build --output-on-failure
 ```
 
-16 tests total: 8 for `opencl_runtime`, 8 for `bitonic_runner`.
+Current suite includes runtime tests and bitonic correctness tests.
+
+Important:
+- compile-dependent tests are skipped on non-buildable OpenCL runtimes
+- this is expected behavior, not a false pass
 
 ### E2E tests
 
@@ -131,22 +172,75 @@ ctest --test-dir build --output-on-failure
 ./tests/e2e/run_all.sh ./build/bitonic_sort
 ```
 
-23 test cases covering: empty input, single element, power-of-two and non-power-of-two sizes, negative values, `INT_MIN`/`INT_MAX` boundary values, duplicates, and large arrays up to N = 100,000.
+E2E facts:
+- `24` cases (`001..024`)
+- includes empty/single/duplicates/boundary values/random
+- includes both power-of-two and non-power-of-two sizes
+- maximum case: `N = 1,000,000` (`023.dat`)
+- per-test timeout in script: `120s`
+
+`E2E` is intentionally run via `tests/e2e/run_all.sh` and is **not** registered in `ctest`.
+
+Regenerate E2E datasets:
+```bash
+python3 tests/e2e/generate_tests.py
+```
+
+### Test Matrix
+
+| Layer |          Tool          |                              Scope                             |
+|-------|------------------------|----------------------------------------------------------------|
+| Unit  | `ctest` / GoogleTest   | Runtime init, build errors, bitonic correctness vs `std::sort` |
+| E2E   | `tests/e2e/run_all.sh` | CLI contract (`stdin -> stdout`) on fixed `.dat/.ans` corpus   |
 
 ---
 
 ## Benchmark
 
 The selected OpenCL platform and device are printed to stderr on startup.
+Charts are generated by:
+
+```bash
+python3 docs/gen_benchmark.py
+```
 
 ### AMD Vega (gfx90c) - integrated GPU
 
 <p align="center">
-  <img src="docs/benchmark.svg" alt="Benchmark: std::sort vs OpenCL bitonic sort" width="660"/>
+    <img src="docs/benchmark.svg" alt="Benchmark on AMD Vega (gfx90c)" width="660"/>
 </p>
 
 OpenCL outperforms `std::sort` starting around N = 8,192. For small N, host-device transfer overhead dominates.
 
 ### NVIDIA GTX 1080
 
-<!-- TODO -->
+<p align="center">
+    <img src="docs/benchmark_gtx1080.svg" alt="Benchmark on NVIDIA GTX 1080" width="660"/>
+</p>
+
+For GTX 1080, OpenCL is slower only at `N = 1,024` and then significantly faster starting from `N = 8,192`.
+
+Interpretation guidance:
+- compare both `OCL total` and `OCL kernel` columns
+- for small `N`, transfer/launch overhead dominates
+- for larger `N`, throughput benefits are visible on real GPU runtimes
+
+---
+
+## Known Runtime Issues
+
+Some environments expose OpenCL devices that cannot actually build kernels.
+Typical symptom:
+- `CL_BUILD_PROGRAM_FAILURE (-11)` during kernel build
+
+Runtime behavior in this project:
+- `init()` probes candidate devices with a tiny kernel build
+- prefers buildable GPU, then buildable non-GPU
+- falls back to best available device with warning if probe fails everywhere
+- `build_program()` reports detailed diagnostics:
+    - kernel path
+    - platform/device
+    - build options
+    - error code + build status + build log
+
+This design makes CI and cross-machine debugging significantly easier.
