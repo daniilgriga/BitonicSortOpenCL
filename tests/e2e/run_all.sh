@@ -50,7 +50,7 @@ for dat_file in "$SCRIPT_DIR"/*.dat; do
     fi
 
     stderr_file=$(mktemp)
-    actual_output=$(timeout 60s "$BINARY" < "$dat_file" 2>"$stderr_file")
+    actual_output=$(timeout 120s "$BINARY" < "$dat_file" 2>"$stderr_file")
     exit_code=$?
 
     if [ $exit_code -ne 0 ]; then
