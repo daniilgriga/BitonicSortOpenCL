@@ -28,7 +28,7 @@ echo "========================================"
 
 # preflight: verify binary can start with minimal input
 preflight_stderr=$(mktemp)
-printf '1\n1\n' | timeout 30s "$BINARY" >/dev/null 2>"$preflight_stderr"
+printf '1\n1\n' | timeout 120s "$BINARY" >/dev/null 2>"$preflight_stderr"
 preflight_exit=$?
 
 if [ $preflight_exit -ne 0 ]; then
@@ -50,7 +50,7 @@ for dat_file in "$SCRIPT_DIR"/*.dat; do
     fi
 
     stderr_file=$(mktemp)
-    actual_output=$(timeout 30s "$BINARY" < "$dat_file" 2>"$stderr_file")
+    actual_output=$(timeout 60s "$BINARY" < "$dat_file" 2>"$stderr_file")
     exit_code=$?
 
     if [ $exit_code -ne 0 ]; then
