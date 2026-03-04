@@ -126,6 +126,15 @@ Override the default kernel path with `--kernel`:
 ./build/bitonic_sort --kernel /path/to/bitonic.cl
 ```
 
+Show CLI help:
+```bash
+./build/bitonic_sort --help
+```
+
+> [!NOTE]
+> For non-Linux hosts, passing explicit `--kernel` is the most reliable option
+> on Linux, if `kernels/bitonic.cl` is not found in current working directory, binary also tries `<binary_dir>/kernels/bitonic.cl`.
+
 ### Benchmark mode
 
 Compares `std::sort` (CPU baseline) against OpenCL across a range of array sizes:
@@ -171,6 +180,8 @@ Important:
 ```bash
 ./tests/e2e/run_all.sh ./build/bitonic_sort
 ```
+
+The script passes an absolute `--kernel` path automatically (`<repo>/kernels/bitonic.cl`).
 
 E2E facts:
 - `24` cases (`001..024`)
