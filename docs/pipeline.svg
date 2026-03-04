@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="220" viewBox="0 0 1080 220">
+  <defs>
+    <style>
+      .title { font: 700 20px "DejaVu Sans", Arial, sans-serif; fill: #f8fafc; }
+      .label { font: 600 14px "DejaVu Sans", Arial, sans-serif; fill: #111827; }
+      .body  { font: 400 12px "DejaVu Sans", Arial, sans-serif; fill: #1f2937; }
+      .box   { rx: 12; ry: 12; stroke-width: 2; }
+      .arrow { stroke: #475569; stroke-width: 2; fill: none; marker-end: url(#a); }
+    </style>
+    <marker id="a" markerWidth="12" markerHeight="8" refX="10" refY="4" orient="auto">
+      <path d="M0,0 L12,4 L0,8 Z" fill="#475569"/>
+    </marker>
+  </defs>
+
+  <!-- transparent background -->
+  <text x="540" y="34" text-anchor="middle" class="title">Host/device pipeline used in this project</text>
+
+  <rect class="box" x="30" y="64" width="190" height="120" fill="#bfdbfe" stroke="#3b82f6"/>
+  <text class="label" x="50" y="92">1. Host Input</text>
+  <text class="body" x="50" y="114">read N and N integers</text>
+  <text class="body" x="50" y="132">validate format</text>
+  <text class="body" x="50" y="150">prepare vector&lt;int&gt;</text>
+
+  <rect class="box" x="250" y="64" width="220" height="120" fill="#bbf7d0" stroke="#16a34a"/>
+  <text class="label" x="270" y="92">2. Runtime Init</text>
+  <text class="body" x="270" y="114">platform/device discovery</text>
+  <text class="body" x="270" y="132">buildability probe</text>
+  <text class="body" x="270" y="150">context + profiled queue</text>
+
+  <rect class="box" x="500" y="64" width="230" height="120" fill="#fde68a" stroke="#d97706"/>
+  <text class="label" x="520" y="92">3. Program Build</text>
+  <text class="body" x="520" y="114">load kernels/bitonic.cl</text>
+  <text class="body" x="520" y="132">build (default or CL1.2)</text>
+  <text class="body" x="520" y="150">emit detailed diagnostics</text>
+
+  <rect class="box" x="760" y="64" width="290" height="120" fill="#fecaca" stroke="#ef4444"/>
+  <text class="label" x="780" y="92">4. Execute + Readback</text>
+  <text class="body" x="780" y="114">pad to next power-of-two</text>
+  <text class="body" x="780" y="132">launch all (k,j) bitonic stages</text>
+  <text class="body" x="780" y="150">read result, trim to original N</text>
+  <text class="body" x="780" y="168">print sorted output</text>
+
+  <path class="arrow" d="M220 124 L250 124"/>
+  <path class="arrow" d="M470 124 L500 124"/>
+  <path class="arrow" d="M730 124 L760 124"/>
+</svg>
