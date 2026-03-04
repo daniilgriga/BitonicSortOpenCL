@@ -7,7 +7,6 @@ Transparent background — designed for GitHub dark theme.
 
 N = 8
 
-# ── layout ────────────────────────────────────────────────────────────────────
 WIRE_SPACING = 44
 LEFT_PAD     = 80
 RIGHT_PAD    = 80
@@ -18,13 +17,11 @@ DOT_R        = 5
 ARR_W        = 6    # arrowhead half-width
 ARR_H        = 9    # arrowhead height
 
-# ── colours ───────────────────────────────────────────────────────────────────
 WIRE_COLOR   = "#8b949e"
 LABEL_COLOR  = "#c9d1d9"
 DIM_COLOR    = "#6e7681"
 PHASE_COLORS = ["#58a6ff", "#bc8cff", "#3fb950"]   # k=2, k=4, k=8
 
-# ── build comparator list ─────────────────────────────────────────────────────
 all_steps = []
 k = 2
 while k <= N:
@@ -61,7 +58,7 @@ for col in columns:
     k_val = max(s[3] for s in col)
     phase_of_col.append({2: 0, 4: 1, 8: 2}[k_val])
 
-# ── geometry helpers ──────────────────────────────────────────────────────────
+# geometry helpers
 width  = LEFT_PAD + n_cols * STEP_WIDTH + RIGHT_PAD
 height = TOP_PAD + (N - 1) * WIRE_SPACING + BOTTOM_PAD
 
@@ -80,19 +77,17 @@ def arrow_up(x, y, color):
     pts = f"{x - ARR_W},{y + ARR_H} {x + ARR_W},{y + ARR_H} {x},{y}"
     return f'  <polygon points="{pts}" fill="{color}"/>'
 
-# ── phase column ranges ───────────────────────────────────────────────────────
 phase_ranges = {0: [], 1: [], 2: []}
 for ci, ph in enumerate(phase_of_col):
     phase_ranges[ph].append(ci)
 
-# ── SVG ───────────────────────────────────────────────────────────────────────
 L = []
 L.append(f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">')
 
 # title
 L.append(f'  <text x="{width//2}" y="22" text-anchor="middle"')
 L.append(f'        font-family="sans-serif" font-size="14" font-weight="600" fill="{LABEL_COLOR}">')
-L.append(f'    Bitonic Sorting Network — N=8')
+L.append(f'    Bitonic Sorting Network — N = 8')
 L.append(f'  </text>')
 
 # "input" / "sorted" column headers
@@ -193,4 +188,4 @@ out  = "\n".join(L)
 path = __file__.replace("gen_network.py", "bitonic_network.svg")
 with open(path, "w") as f:
     f.write(out)
-print(f"Written {path}  ({width}×{height}px, {n_cols} columns)")
+print(f"Written {path}  ({width}x{height}px, {n_cols} columns)")
