@@ -29,9 +29,9 @@ The network illustration below shows `N = 8`:
     <img src="docs/bitonic_network.svg" alt="Bitonic sorting network for N = 8" width="520"/>
 </p>
 
-Implementation details used in this project:
-- Kernel: `bitonic_sort_step_half_ctz`
-- Host launches all `(k, j)` stages in sequence (`k = 2, 4, 8, ...`)
+Implementation details:
+- Two kernels: `bitonic_sort_local` (local-memory sort within work-groups) and `bitonic_sort_step_half_ctz` (global merge across groups)
+- Host first runs the local kernel to sort blocks in shared memory, then launches global `(k, j)` stages for the remaining merge phases
 - Each stage compares independent pairs and swaps if required
 - OpenCL events are collected to measure aggregate kernel time
 
