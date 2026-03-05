@@ -82,3 +82,119 @@ jobs:
 
       - name: Run E2E tests
         run: ./tests/e2e/run_all.sh ./build/release/bitonic_sort
+
+  windows-debug:
+    name: Windows (MSVC Debug)
+    runs-on: windows-latest
+
+    env:
+      PROJECT_VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install dependencies (vcpkg)
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
+          & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat"
+          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install gtest:x64-windows opencl:x64-windows
+
+      - name: Configure
+        run: cmake -S . -B build/debug -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build/debug --config Debug
+
+      - name: Run tests
+        run: ctest --test-dir build/debug -C Debug --output-on-failure
+
+      - name: CLI smoke test
+        shell: pwsh
+        run: .\build\debug\Debug\bitonic_sort.exe --help
+
+  windows-sanitize:
+    name: Windows (MSVC Sanitize config)
+    runs-on: windows-latest
+
+    env:
+      PROJECT_VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install dependencies (vcpkg)
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
+          & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat"
+          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install gtest:x64-windows opencl:x64-windows
+
+      - name: Configure
+        run: cmake -S . -B build/sanitize -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DSANITIZE=ON -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build/sanitize --config Debug
+
+      - name: Run tests
+        run: ctest --test-dir build/sanitize -C Debug --output-on-failure
+
+      - name: CLI smoke test
+        shell: pwsh
+        run: .\build\sanitize\Debug\bitonic_sort.exe --help
+
+  windows-release:
+    name: Windows (MSVC Release)
+    runs-on: windows-latest
+
+    env:
+      PROJECT_VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install dependencies (vcpkg)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+
+          function Invoke-WithRetry {
+            param(
+              [scriptblock]$Action,
+              [int]$MaxAttempts = 4,
+              [int]$DelaySeconds = 20
+            )
+
+            for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
+              try {
+                & $Action
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Command exited with code $LASTEXITCODE"
+                }
+                return
+              } catch {
+                if ($Attempt -eq $MaxAttempts) {
+                  throw
+                }
+                Write-Host "Attempt $Attempt failed. Retrying in $DelaySeconds seconds..."
+                Start-Sleep -Seconds $DelaySeconds
+              }
+            }
+          }
+
+          git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
+          Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics }
+          Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install opencl:x64-windows }
+
+      - name: Configure
+        run: cmake -S . -B build/release -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=OFF -DSANITIZE=OFF -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build/release --config Release
+
+      - name: CLI smoke test
+        shell: pwsh
+        run: .\build\release\Release\bitonic_sort.exe --help
