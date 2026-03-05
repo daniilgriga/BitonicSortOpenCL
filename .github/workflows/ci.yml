@@ -159,9 +159,35 @@ jobs:
       - name: Install dependencies (vcpkg)
         shell: pwsh
         run: |
+          $ErrorActionPreference = "Stop"
+
+          function Invoke-WithRetry {
+            param(
+              [scriptblock]$Action,
+              [int]$MaxAttempts = 4,
+              [int]$DelaySeconds = 20
+            )
+
+            for ($Attempt = 1; $Attempt -le $MaxAttempts; $Attempt++) {
+              try {
+                & $Action
+                if ($LASTEXITCODE -ne 0) {
+                  throw "Command exited with code $LASTEXITCODE"
+                }
+                return
+              } catch {
+                if ($Attempt -eq $MaxAttempts) {
+                  throw
+                }
+                Write-Host "Attempt $Attempt failed. Retrying in $DelaySeconds seconds..."
+                Start-Sleep -Seconds $DelaySeconds
+              }
+            }
+          }
+
           git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
-          & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat"
-          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install opencl:x64-windows
+          Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics }
+          Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install opencl:x64-windows }
 
       - name: Configure
         run: cmake -S . -B build/release -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=OFF -DSANITIZE=OFF -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
