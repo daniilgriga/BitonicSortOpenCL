@@ -15,7 +15,14 @@ protected:
 
     void SetUp() override
     {
-        rt.init();
+        try
+        {
+            rt.init();
+        }
+        catch (const std::exception& e)
+        {
+            GTEST_SKIP() << "OpenCL is unavailable in test environment: " << e.what();
+        }
     }
 };
 
