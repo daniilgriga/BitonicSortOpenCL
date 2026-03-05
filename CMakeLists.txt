@@ -63,7 +63,8 @@ if (BUILD_TESTS)
     enable_testing ()
 
     add_executable (bitonic_test
-        tests/test_opencl_runtime.cpp
+        tests/unit/test_opencl_runtime.cpp
+        tests/unit/test_bitonic_runner.cpp
         src/opencl_runtime.cpp
         src/bitonic_runner.cpp
     )

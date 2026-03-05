@@ -11,9 +11,38 @@
 #include <stdexcept>
 #include <vector>
 
-namespace {
+namespace
+{
 
     constexpr const char* DEFAULT_KERNEL_PATH = "kernels/bitonic.cl";
+
+    void print_usage (const char* program_name)
+    {
+        std::cerr << "Usage: " << program_name
+                  << " [--benchmark] [--kernel <path>] [--help]\n";
+    }
+
+    std::filesystem::path resolve_default_kernel_path()
+    {
+        const std::filesystem::path cwd_candidate = DEFAULT_KERNEL_PATH;
+        if (std::filesystem::exists (cwd_candidate))
+            return cwd_candidate;
+
+#if defined(__linux__)
+        std::error_code ec;
+        const std::filesystem::path exe_path =
+            std::filesystem::read_symlink ("/proc/self/exe", ec);
+        if (!ec)
+        {
+            const std::filesystem::path exe_candidate =
+                exe_path.parent_path() / DEFAULT_KERNEL_PATH;
+            if (std::filesystem::exists (exe_candidate))
+                return exe_candidate;
+        }
+#endif
+
+        return cwd_candidate;
+    }
 
     int run_sort (ocl::Runtime& rt)
     {
@@ -109,19 +138,41 @@ int main (int argc, char* argv[])
     try
     {
         std::filesystem::path kernel_path = DEFAULT_KERNEL_PATH;
+        bool kernel_path_explicit = false;
         bool benchmark = false;
 
         for (int i = 1; i < argc; ++i)
         {
-            if (std::strcmp (argv[i], "--benchmark") == 0)
+            if (std::strcmp (argv[i], "--help") == 0 ||
+                std::strcmp (argv[i], "-h") == 0)
+            {
+                print_usage (argv[0]);
+                return 0;
+            }
+            else if (std::strcmp (argv[i], "--benchmark") == 0)
             {
                 benchmark = true;
             }
-            else if (std::strcmp (argv[i], "--kernel") == 0 && i + 1 < argc)
+            else if (std::strcmp (argv[i], "--kernel") == 0)
             {
+                if (i + 1 >= argc)
+                {
+                    print_usage (argv[0]);
+                    throw std::runtime_error ("Missing value for --kernel");
+                }
+
                 kernel_path = argv[++i];
+                kernel_path_explicit = true;
+            }
+            else
+            {
+                print_usage (argv[0]);
+                throw std::runtime_error ("Unknown argument: " + std::string (argv[i]));
             }
         }
+
+        if (!kernel_path_explicit)
+            kernel_path = resolve_default_kernel_path();
 
         ocl::Runtime rt;
         rt.init();

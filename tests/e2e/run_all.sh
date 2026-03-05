@@ -15,6 +15,8 @@ fi
 
 BINARY="$1"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+KERNEL_PATH="$REPO_ROOT/kernels/bitonic.cl"
 PASSED=0
 FAILED=0
 
@@ -23,12 +25,17 @@ if [ ! -f "$BINARY" ]; then
     exit 1
 fi
 
+if [ ! -f "$KERNEL_PATH" ]; then
+    echo -e "${RED}ERROR: kernel not found at $KERNEL_PATH${NC}"
+    exit 1
+fi
+
 echo "Running end-to-end tests for Bitonic Sort"
 echo "========================================"
 
 # preflight: verify binary can start with minimal input
 preflight_stderr=$(mktemp)
-printf '1\n1\n' | timeout 120s "$BINARY" >/dev/null 2>"$preflight_stderr"
+printf '1\n1\n' | timeout 120s "$BINARY" --kernel "$KERNEL_PATH" >/dev/null 2>"$preflight_stderr"
 preflight_exit=$?
 
 if [ $preflight_exit -ne 0 ]; then
@@ -50,7 +57,7 @@ for dat_file in "$SCRIPT_DIR"/*.dat; do
     fi
 
     stderr_file=$(mktemp)
-    actual_output=$(timeout 120s "$BINARY" < "$dat_file" 2>"$stderr_file")
+    actual_output=$(timeout 120s "$BINARY" --kernel "$KERNEL_PATH" < "$dat_file" 2>"$stderr_file")
     exit_code=$?
 
     if [ $exit_code -ne 0 ]; then

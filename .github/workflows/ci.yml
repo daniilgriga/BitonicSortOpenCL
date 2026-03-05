@@ -56,6 +56,8 @@ jobs:
         run: cmake --build build/sanitize
 
       - name: Run tests
+        env:
+          LSAN_OPTIONS: suppressions=${{ github.workspace }}/.github/lsan.supp:print_suppressions=0
         run: ctest --test-dir build/sanitize --output-on-failure
 
   ubuntu-release:

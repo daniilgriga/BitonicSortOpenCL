@@ -29,9 +29,9 @@ The network illustration below shows `N = 8`:
     <img src="docs/bitonic_network.svg" alt="Bitonic sorting network for N = 8" width="520"/>
 </p>
 
-Implementation details used in this project:
-- Kernel: `bitonic_sort_step_half_ctz`
-- Host launches all `(k, j)` stages in sequence (`k = 2, 4, 8, ...`)
+Implementation details:
+- Two kernels: `bitonic_sort_local` (local-memory sort within work-groups) and `bitonic_sort_step_half_ctz` (global merge across groups)
+- Host first runs the local kernel to sort blocks in shared memory, then launches global `(k, j)` stages for the remaining merge phases
 - Each stage compares independent pairs and swaps if required
 - OpenCL events are collected to measure aggregate kernel time
 
@@ -126,6 +126,15 @@ Override the default kernel path with `--kernel`:
 ./build/bitonic_sort --kernel /path/to/bitonic.cl
 ```
 
+Show CLI help:
+```bash
+./build/bitonic_sort --help
+```
+
+> [!NOTE]
+> For non-Linux hosts, passing explicit `--kernel` is the most reliable option
+> on Linux, if `kernels/bitonic.cl` is not found in current working directory, binary also tries `<binary_dir>/kernels/bitonic.cl`.
+
 ### Benchmark mode
 
 Compares `std::sort` (CPU baseline) against OpenCL across a range of array sizes:
@@ -142,12 +151,12 @@ Example output:
 ```
          N     std::sort     OCL total    OCL kernel   Speedup
 --------------------------------------------------------------
-      1024       0.06 ms      13.11 ms       1.82 ms     0.00x
-      8192       0.93 ms       0.96 ms       0.63 ms     0.96x
-     65536       5.20 ms       2.37 ms       1.22 ms     2.19x
-    262144      24.06 ms      13.47 ms      11.07 ms     1.79x
-    524288      48.75 ms      34.17 ms      28.45 ms     1.43x
-   1048576     103.13 ms      85.81 ms      75.71 ms     1.20x
+      1024       0.04 ms       6.90 ms       0.07 ms     0.01x
+      8192       0.93 ms       0.55 ms       0.21 ms     1.70x
+     65536       3.13 ms       1.54 ms       1.03 ms     2.03x
+    262144      13.79 ms       8.61 ms       7.38 ms     1.60x
+    524288      29.35 ms      26.33 ms      21.39 ms     1.11x
+   1048576      61.90 ms      55.98 ms      47.46 ms     1.11x
 ```
 
 ---
@@ -171,6 +180,8 @@ Important:
 ```bash
 ./tests/e2e/run_all.sh ./build/bitonic_sort
 ```
+
+The script passes an absolute `--kernel` path automatically (`<repo>/kernels/bitonic.cl`).
 
 E2E facts:
 - `24` cases (`001..024`)

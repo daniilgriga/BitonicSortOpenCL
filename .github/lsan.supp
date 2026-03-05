@@ -1,0 +1,5 @@
+# Suppress known leaks in external OpenCL runtime (PoCL/LLVM) on CI.
+# These are outside of project code and can fail sanitizer jobs nondeterministically.
+leak:libpocl.so
+leak:libpocl-devices-pthread.so
+leak:libLLVM-16.so
