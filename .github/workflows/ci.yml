@@ -82,3 +82,90 @@ jobs:
 
       - name: Run E2E tests
         run: ./tests/e2e/run_all.sh ./build/release/bitonic_sort
+
+  windows-debug:
+    name: Windows (MSVC Debug)
+    runs-on: windows-latest
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (vcpkg)
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          & "$env:VCPKG_ROOT/bootstrap-vcpkg.bat"
+          & "$env:VCPKG_ROOT/vcpkg.exe" install gtest opencl --triplet x64-windows
+
+      - name: Configure
+        run: cmake -S . -B build/debug -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build/debug
+
+      - name: Run tests
+        run: ctest --test-dir build/debug --output-on-failure
+
+      - name: CLI smoke test
+        shell: pwsh
+        run: .\build\debug\bitonic_sort.exe --help
+
+  windows-sanitize:
+    name: Windows (MSVC Sanitize config)
+    runs-on: windows-latest
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (vcpkg)
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          & "$env:VCPKG_ROOT/bootstrap-vcpkg.bat"
+          & "$env:VCPKG_ROOT/vcpkg.exe" install gtest opencl --triplet x64-windows
+
+      - name: Configure
+        run: cmake -S . -B build/sanitize -G Ninja -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DSANITIZE=ON -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build/sanitize
+
+      - name: Run tests
+        run: ctest --test-dir build/sanitize --output-on-failure
+
+      - name: CLI smoke test
+        shell: pwsh
+        run: .\build\sanitize\bitonic_sort.exe --help
+
+  windows-release:
+    name: Windows (MSVC Release)
+    runs-on: windows-latest
+
+    env:
+      VCPKG_ROOT: ${{ github.workspace }}/vcpkg
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies (vcpkg)
+        shell: pwsh
+        run: |
+          git clone https://github.com/microsoft/vcpkg.git "$env:VCPKG_ROOT"
+          & "$env:VCPKG_ROOT/bootstrap-vcpkg.bat"
+          & "$env:VCPKG_ROOT/vcpkg.exe" install opencl --triplet x64-windows
+
+      - name: Configure
+        run: cmake -S . -B build/release -G Ninja -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTS=OFF -DSANITIZE=OFF -DCMAKE_TOOLCHAIN_FILE=${{ github.workspace }}/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        run: cmake --build build/release
+
+      - name: CLI smoke test
+        shell: pwsh
+        run: .\build\release\bitonic_sort.exe --help
