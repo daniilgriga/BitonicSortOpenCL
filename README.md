@@ -78,10 +78,6 @@ This implementation supports arbitrary `N` by:
 | OpenCL     | >= 1.2  |
 | GTest      | any     |
 
-Tested on:
-- POCL (CPU runtime)
-- AMD OpenCL stack (Vega GPU)
-
 > [!NOTE]
 > Some OpenCL runtimes report compiler availability but still fail to build kernels (see [Known Runtime Issues](#known-runtime-issues)).
 
