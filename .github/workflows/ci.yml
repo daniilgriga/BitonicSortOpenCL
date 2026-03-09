@@ -19,6 +19,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake ninja-build g++ \
+            libcli11-dev \
             libgtest-dev \
             opencl-headers ocl-icd-opencl-dev pocl-opencl-icd
 
@@ -46,6 +47,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake ninja-build g++ \
+            libcli11-dev \
             libgtest-dev \
             opencl-headers ocl-icd-opencl-dev pocl-opencl-icd
 
@@ -72,6 +74,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y \
             cmake ninja-build g++ \
+            libcli11-dev \
             opencl-headers ocl-icd-opencl-dev pocl-opencl-icd
 
       - name: Configure
@@ -99,7 +102,7 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
           & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat"
-          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install gtest:x64-windows opencl:x64-windows
+          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install gtest:x64-windows opencl:x64-windows cli11:x64-windows
 
       - name: Configure
         run: cmake -S . -B build/debug -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
@@ -130,7 +133,7 @@ jobs:
         run: |
           git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
           & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat"
-          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install gtest:x64-windows opencl:x64-windows
+          & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install gtest:x64-windows opencl:x64-windows cli11:x64-windows
 
       - name: Configure
         run: cmake -S . -B build/sanitize -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=ON -DSANITIZE=ON -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake
@@ -187,7 +190,7 @@ jobs:
 
           git clone https://github.com/microsoft/vcpkg.git "$env:PROJECT_VCPKG_ROOT"
           Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/bootstrap-vcpkg.bat" -disableMetrics }
-          Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install opencl:x64-windows }
+          Invoke-WithRetry { & "$env:PROJECT_VCPKG_ROOT/vcpkg.exe" install opencl:x64-windows cli11:x64-windows }
 
       - name: Configure
         run: cmake -S . -B build/release -G "Visual Studio 17 2022" -A x64 -DBUILD_TESTS=OFF -DSANITIZE=OFF -DCMAKE_TOOLCHAIN_FILE=${{ env.PROJECT_VCPKG_ROOT }}/scripts/buildsystems/vcpkg.cmake

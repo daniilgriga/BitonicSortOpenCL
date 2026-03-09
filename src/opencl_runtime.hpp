@@ -18,7 +18,7 @@ namespace ocl
         bool             buildable_ = false;
 
     public:
-        void init();
+        void init (bool verbose = false);
         void build_program (const std::filesystem::path& kernel_path);
 
         const cl::Device&  device()    const { return device_;    }
