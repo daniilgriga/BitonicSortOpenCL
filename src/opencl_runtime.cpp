@@ -109,7 +109,7 @@ namespace ocl
         }
     }
 
-    void Runtime::init()
+    void Runtime::init (bool verbose)
     {
         struct Candidate
         {
@@ -176,7 +176,7 @@ namespace ocl
                         any_compiler.value_or (
                             any_device.value()))));
 
-        if (!selected.buildable)
+        if (!selected.buildable && verbose)
         {
             std::cerr << "[OpenCL] Warning: build probe failed for all devices;"
                          " using fallback\n";
@@ -188,10 +188,13 @@ namespace ocl
 
         const cl_device_type dtype = device_.getInfo<CL_DEVICE_TYPE>();
 
-        std::cerr << "[OpenCL] Platform : " << platform_.getInfo<CL_PLATFORM_NAME>() << "\n"
-                  << "[OpenCL] Device   : " << device_.getInfo<CL_DEVICE_NAME>() << "\n"
-                  << "[OpenCL] Type     : " << device_type_string (dtype) << "\n"
-                  << "[OpenCL] Version  : " << device_.getInfo<CL_DEVICE_VERSION>() << "\n";
+        if (verbose)
+        {
+            std::cerr << "[OpenCL] Platform : " << platform_.getInfo<CL_PLATFORM_NAME>() << "\n"
+                      << "[OpenCL] Device   : " << device_.getInfo<CL_DEVICE_NAME>() << "\n"
+                      << "[OpenCL] Type     : " << device_type_string (dtype) << "\n"
+                      << "[OpenCL] Version  : " << device_.getInfo<CL_DEVICE_VERSION>() << "\n";
+        }
 
         context_ = cl::Context (device_);
         queue_   = cl::CommandQueue (context_, device_, CL_QUEUE_PROFILING_ENABLE);
