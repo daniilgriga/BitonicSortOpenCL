@@ -1,9 +1,10 @@
 #include "bitonic_runner.hpp"
 #include "opencl_runtime.hpp"
 
+#include <CLI/CLI.hpp>
+
 #include <algorithm>
 #include <chrono>
-#include <cstring>
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
@@ -16,11 +17,24 @@ namespace
 
     constexpr const char* DEFAULT_KERNEL_PATH = "kernels/bitonic.cl";
 
-    void print_usage (const char* program_name)
+    struct CpuSortResult
     {
-        std::cerr << "Usage: " << program_name
-                  << " [--benchmark] [--kernel <path>] [--help]\n";
-    }
+        std::vector<int> data;
+        std::uint64_t time_ns;
+    };
+
+    struct GpuSortResult
+    {
+        std::vector<int> data;
+        bitonic::SortResult stats;
+    };
+
+    struct SortOutputs
+    {
+        std::size_t n;
+        CpuSortResult cpu;
+        GpuSortResult gpu;
+    };
 
     std::filesystem::path resolve_default_kernel_path()
     {
@@ -44,13 +58,12 @@ namespace
         return cwd_candidate;
     }
 
-    int run_sort (ocl::Runtime& rt)
+    std::vector<int> read_input ()
     {
         int n;
         if (!(std::cin >> n) || n < 0)
         {
-            std::cerr << "Error: expected non-negative integer N\n";
-            return 1;
+            throw std::runtime_error ("expected non-negative integer N");
         }
 
         std::vector<int> data (n);
@@ -58,16 +71,52 @@ namespace
         {
             if (!(std::cin >> data[i]))
             {
-                std::cerr << "Error: expected " << n << " integers, got " << i << "\n";
-                return 1;
+                throw std::runtime_error (
+                    "expected " + std::to_string (n) + " integers, got " + std::to_string (i)
+                );
             }
         }
 
-        bitonic::bitonic_sort (rt, data);
+        return data;
+    }
 
-        for (int i = 0; i < n; ++i)
-            std::cout << data[i] << (i + 1 < n ? ' ' : '\n');
+    CpuSortResult run_cpu_sort (const std::vector<int>& input)
+    {
+        CpuSortResult out;
+        out.data = input;
 
+        const auto start = std::chrono::steady_clock::now();
+        std::sort (out.data.begin(), out.data.end());
+        const auto end = std::chrono::steady_clock::now();
+        out.time_ns = static_cast<std::uint64_t>(
+            std::chrono::duration_cast<std::chrono::nanoseconds> (end - start).count()
+        );
+        return out;
+    }
+
+    GpuSortResult run_gpu_sort (ocl::Runtime& rt, const std::vector<int>& input)
+    {
+        GpuSortResult out;
+        out.data = input;
+        out.stats = bitonic::bitonic_sort (rt, out.data);
+        return out;
+    }
+
+    SortOutputs run_both_sorts (ocl::Runtime& rt, const std::vector<int>& input)
+    {
+        SortOutputs out;
+        out.n = input.size();
+        out.cpu = run_cpu_sort (input);
+        out.gpu = run_gpu_sort (rt, input);
+        return out;
+    }
+
+    int run_sort (const SortOutputs& outputs)
+    {
+        // Use GPU result as output of the OpenCL sort mode
+        for (std::size_t i = 0; i < outputs.gpu.data.size(); ++i)
+            std::cout << outputs.gpu.data[i]
+                      << (i + 1 < outputs.gpu.data.size() ? ' ' : '\n');
         return 0;
     }
 
@@ -76,11 +125,8 @@ namespace
         return static_cast<double>(ns) / 1'000'000.0;
     }
 
-    int run_benchmark (ocl::Runtime& rt)
+    void print_benchmark_header ()
     {
-        constexpr int seed = 13;
-        const std::vector<int> sizes = {1024, 8192, 65536, 262144, 524288, 1048576};
-
         std::cout << "\n"
                   << std::setw (10) << "N"
                   << std::setw (14) << "std::sort"
@@ -89,43 +135,53 @@ namespace
                   << std::setw (10) << "Speedup"
                   << "\n"
                   << std::string (62, '-') << "\n";
+    }
 
-        for (int n : sizes)
+    int print_benchmark_row (const SortOutputs& outputs)
+    {
+        if (outputs.cpu.data != outputs.gpu.data)
         {
-            std::mt19937 gen (seed);
-            std::uniform_int_distribution<int> dist (0, n);
-            std::vector<int> data (n);
+            std::cerr << "MISMATCH at N=" << outputs.n << "\n";
+            return 1;
+        }
 
+        const double speedup = (outputs.gpu.stats.total_ns > 0)
+            ? static_cast<double>(outputs.cpu.time_ns) / static_cast<double>(outputs.gpu.stats.total_ns)
+            : 0.0;
+
+        std::cout << std::setw (10) << outputs.n
+                  << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (outputs.cpu.time_ns) << " ms"
+                  << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (outputs.gpu.stats.total_ns)  << " ms"
+                  << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (outputs.gpu.stats.kernel_ns) << " ms"
+                  << std::setw (9)  << std::fixed << std::setprecision (2) << speedup << "x"
+                  << "\n";
+        return 0;
+    }
+
+    int run_benchmark (const SortOutputs& outputs)
+    {
+        print_benchmark_header();
+        return print_benchmark_row (outputs);
+    }
+
+    int run_benchmark_random (ocl::Runtime& rt)
+    {
+        constexpr int seed = 13;
+        const std::vector<int> sizes = {1024, 8192, 65536, 262144, 524288, 1048576};
+
+        std::mt19937 gen (seed);
+        print_benchmark_header();
+
+        for (const int n : sizes)
+        {
+            std::uniform_int_distribution<int> dist (0, n);
+            std::vector<int> data (static_cast<std::size_t>(n));
             for (int& x : data)
                 x = dist (gen);
 
-            // CPU baseline
-            std::vector<int> cpu_data = data;
-            auto cpu_start = std::chrono::steady_clock::now();
-            std::sort (cpu_data.begin(), cpu_data.end());
-            auto cpu_end = std::chrono::steady_clock::now();
-            auto cpu_ns  = std::chrono::duration_cast<std::chrono::nanoseconds>(cpu_end - cpu_start).count();
-
-            std::vector<int> ocl_data = data;
-            bitonic::SortResult result = bitonic::bitonic_sort (rt, ocl_data);
-
-            // correctness check
-            if (cpu_data != ocl_data)
-            {
-                std::cerr << "MISMATCH at N=" << n << "\n";
+            const SortOutputs outputs = run_both_sorts (rt, data);
+            if (print_benchmark_row (outputs) != 0)
                 return 1;
-            }
-
-            double speedup = (result.total_ns > 0)
-                ? static_cast<double>(cpu_ns) / static_cast<double>(result.total_ns)
-                : 0.0;
-
-            std::cout << std::setw (10) << n
-                      << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (cpu_ns) << " ms"
-                      << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (result.total_ns)  << " ms"
-                      << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (result.kernel_ns) << " ms"
-                      << std::setw (9)  << std::fixed << std::setprecision (2) << speedup << "x"
-                      << "\n";
         }
 
         return 0;
@@ -137,48 +193,56 @@ int main (int argc, char* argv[])
 {
     try
     {
-        std::filesystem::path kernel_path = DEFAULT_KERNEL_PATH;
-        bool kernel_path_explicit = false;
+        std::string kernel_path_arg;
         bool benchmark = false;
+        bool benchmark_random = false;
+        bool verbose = false;
 
-        for (int i = 1; i < argc; ++i)
+        CLI::App app {"OpenCL bitonic sort"};
+        app.add_flag (
+            "--benchmark",
+            benchmark,
+            "Run one stdin-based benchmark row (CPU vs OpenCL)"
+        );
+        app.add_flag (
+            "--benchmark-random",
+            benchmark_random,
+            "Run random benchmark table for predefined sizes"
+        );
+        auto* kernel_opt = app.add_option (
+            "--kernel",
+            kernel_path_arg,
+            "Path to OpenCL kernel source"
+        );
+        app.add_flag (
+            "--verbose",
+            verbose,
+            "Print OpenCL platform/device diagnostics"
+        );
+
+        CLI11_PARSE (app, argc, argv);
+
+        std::filesystem::path kernel_path = resolve_default_kernel_path();
+        if (kernel_opt->count() > 0)
+            kernel_path = kernel_path_arg;
+
+        if (benchmark && benchmark_random)
         {
-            if (std::strcmp (argv[i], "--help") == 0 ||
-                std::strcmp (argv[i], "-h") == 0)
-            {
-                print_usage (argv[0]);
-                return 0;
-            }
-            else if (std::strcmp (argv[i], "--benchmark") == 0)
-            {
-                benchmark = true;
-            }
-            else if (std::strcmp (argv[i], "--kernel") == 0)
-            {
-                if (i + 1 >= argc)
-                {
-                    print_usage (argv[0]);
-                    throw std::runtime_error ("Missing value for --kernel");
-                }
-
-                kernel_path = argv[++i];
-                kernel_path_explicit = true;
-            }
-            else
-            {
-                print_usage (argv[0]);
-                throw std::runtime_error ("Unknown argument: " + std::string (argv[i]));
-            }
+            throw std::runtime_error (
+                "Use either --benchmark (stdin-based) or --benchmark-random, not both"
+            );
         }
 
-        if (!kernel_path_explicit)
-            kernel_path = resolve_default_kernel_path();
-
         ocl::Runtime rt;
-        rt.init();
+        rt.init (verbose);
         rt.build_program (kernel_path);
 
-        return benchmark ? run_benchmark (rt) : run_sort (rt);
+        if (benchmark_random)
+            return run_benchmark_random (rt);
+
+        const std::vector<int> input = read_input();
+        const SortOutputs outputs = run_both_sorts (rt, input);
+        return benchmark ? run_benchmark (outputs) : run_sort (outputs);
     }
     catch (const std::exception& e)
     {
