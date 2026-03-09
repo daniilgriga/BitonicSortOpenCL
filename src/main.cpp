@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
+#include <random>
 #include <stdexcept>
 #include <vector>
 
@@ -37,7 +38,7 @@ namespace
     void print_usage (const char* program_name)
     {
         std::cerr << "Usage: " << program_name
-                  << " [--benchmark] [--kernel <path>] [--verbose] [--help]\n";
+                  << " [--benchmark|--benchmark-random] [--kernel <path>] [--verbose] [--help]\n";
     }
 
     std::filesystem::path resolve_default_kernel_path()
@@ -129,7 +130,7 @@ namespace
         return static_cast<double>(ns) / 1'000'000.0;
     }
 
-    int run_benchmark (const SortOutputs& outputs)
+    void print_benchmark_header ()
     {
         std::cout << "\n"
                   << std::setw (10) << "N"
@@ -139,15 +140,17 @@ namespace
                   << std::setw (10) << "Speedup"
                   << "\n"
                   << std::string (62, '-') << "\n";
+    }
 
-        // correctness check
+    int print_benchmark_row (const SortOutputs& outputs)
+    {
         if (outputs.cpu.data != outputs.gpu.data)
         {
             std::cerr << "MISMATCH at N=" << outputs.n << "\n";
             return 1;
         }
 
-        double speedup = (outputs.gpu.stats.total_ns > 0)
+        const double speedup = (outputs.gpu.stats.total_ns > 0)
             ? static_cast<double>(outputs.cpu.time_ns) / static_cast<double>(outputs.gpu.stats.total_ns)
             : 0.0;
 
@@ -157,6 +160,34 @@ namespace
                   << std::setw (11) << std::fixed << std::setprecision (2) << ns_to_ms (outputs.gpu.stats.kernel_ns) << " ms"
                   << std::setw (9)  << std::fixed << std::setprecision (2) << speedup << "x"
                   << "\n";
+        return 0;
+    }
+
+    int run_benchmark (const SortOutputs& outputs)
+    {
+        print_benchmark_header();
+        return print_benchmark_row (outputs);
+    }
+
+    int run_benchmark_random (ocl::Runtime& rt)
+    {
+        constexpr int seed = 13;
+        const std::vector<int> sizes = {1024, 8192, 65536, 262144, 524288, 1048576};
+
+        std::mt19937 gen (seed);
+        print_benchmark_header();
+
+        for (const int n : sizes)
+        {
+            std::uniform_int_distribution<int> dist (0, n);
+            std::vector<int> data (static_cast<std::size_t>(n));
+            for (int& x : data)
+                x = dist (gen);
+
+            const SortOutputs outputs = run_both_sorts (rt, data);
+            if (print_benchmark_row (outputs) != 0)
+                return 1;
+        }
 
         return 0;
     }
@@ -170,6 +201,7 @@ int main (int argc, char* argv[])
         std::filesystem::path kernel_path = DEFAULT_KERNEL_PATH;
         bool kernel_path_explicit = false;
         bool benchmark = false;
+        bool benchmark_random = false;
         bool verbose = false;
 
         for (int i = 1; i < argc; ++i)
@@ -183,6 +215,10 @@ int main (int argc, char* argv[])
             else if (std::strcmp (argv[i], "--benchmark") == 0)
             {
                 benchmark = true;
+            }
+            else if (std::strcmp (argv[i], "--benchmark-random") == 0)
+            {
+                benchmark_random = true;
             }
             else if (std::strcmp (argv[i], "--kernel") == 0)
             {
@@ -209,9 +245,19 @@ int main (int argc, char* argv[])
         if (!kernel_path_explicit)
             kernel_path = resolve_default_kernel_path();
 
+        if (benchmark && benchmark_random)
+        {
+            throw std::runtime_error (
+                "Use either --benchmark (stdin-based) or --benchmark-random, not both"
+            );
+        }
+
         ocl::Runtime rt;
         rt.init (verbose);
         rt.build_program (kernel_path);
+
+        if (benchmark_random)
+            return run_benchmark_random (rt);
 
         const std::vector<int> input = read_input();
         const SortOutputs outputs = run_both_sorts (rt, input);
