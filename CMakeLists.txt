@@ -24,6 +24,18 @@ if (SANITIZE AND NOT MSVC)
 endif ()
 
 find_package (OpenCL REQUIRED)
+find_package (CLI11 CONFIG QUIET)
+if (NOT TARGET CLI11::CLI11)
+    find_path (CLI11_INCLUDE_DIR NAMES CLI/CLI.hpp)
+    if (NOT CLI11_INCLUDE_DIR)
+        message (FATAL_ERROR "CLI11 not found. Install libcli11-dev (Linux) or cli11:x64-windows (vcpkg).")
+    endif ()
+
+    add_library (CLI11::CLI11 INTERFACE IMPORTED)
+    set_target_properties (CLI11::CLI11 PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${CLI11_INCLUDE_DIR}"
+    )
+endif ()
 
 add_executable (bitonic_sort
     src/main.cpp
@@ -33,7 +45,7 @@ add_executable (bitonic_sort
 
 target_include_directories (bitonic_sort PRIVATE src)
 
-target_link_libraries (bitonic_sort PRIVATE OpenCL::OpenCL)
+target_link_libraries (bitonic_sort PRIVATE OpenCL::OpenCL CLI11::CLI11)
 
 target_compile_options (bitonic_sort PRIVATE
     ${COMMON_COMPILE_OPTIONS}

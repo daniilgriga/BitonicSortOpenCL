@@ -1,9 +1,10 @@
 #include "bitonic_runner.hpp"
 #include "opencl_runtime.hpp"
 
+#include <CLI/CLI.hpp>
+
 #include <algorithm>
 #include <chrono>
-#include <cstring>
 #include <filesystem>
 #include <iomanip>
 #include <iostream>
@@ -34,12 +35,6 @@ namespace
         CpuSortResult cpu;
         GpuSortResult gpu;
     };
-
-    void print_usage (const char* program_name)
-    {
-        std::cerr << "Usage: " << program_name
-                  << " [--benchmark|--benchmark-random] [--kernel <path>] [--verbose] [--help]\n";
-    }
 
     std::filesystem::path resolve_default_kernel_path()
     {
@@ -198,52 +193,38 @@ int main (int argc, char* argv[])
 {
     try
     {
-        std::filesystem::path kernel_path = DEFAULT_KERNEL_PATH;
-        bool kernel_path_explicit = false;
+        std::string kernel_path_arg;
         bool benchmark = false;
         bool benchmark_random = false;
         bool verbose = false;
 
-        for (int i = 1; i < argc; ++i)
-        {
-            if (std::strcmp (argv[i], "--help") == 0 ||
-                std::strcmp (argv[i], "-h") == 0)
-            {
-                print_usage (argv[0]);
-                return 0;
-            }
-            else if (std::strcmp (argv[i], "--benchmark") == 0)
-            {
-                benchmark = true;
-            }
-            else if (std::strcmp (argv[i], "--benchmark-random") == 0)
-            {
-                benchmark_random = true;
-            }
-            else if (std::strcmp (argv[i], "--kernel") == 0)
-            {
-                if (i + 1 >= argc)
-                {
-                    print_usage (argv[0]);
-                    throw std::runtime_error ("Missing value for --kernel");
-                }
+        CLI::App app {"OpenCL bitonic sort"};
+        app.add_flag (
+            "--benchmark",
+            benchmark,
+            "Run one stdin-based benchmark row (CPU vs OpenCL)"
+        );
+        app.add_flag (
+            "--benchmark-random",
+            benchmark_random,
+            "Run random benchmark table for predefined sizes"
+        );
+        auto* kernel_opt = app.add_option (
+            "--kernel",
+            kernel_path_arg,
+            "Path to OpenCL kernel source"
+        );
+        app.add_flag (
+            "--verbose",
+            verbose,
+            "Print OpenCL platform/device diagnostics"
+        );
 
-                kernel_path = argv[++i];
-                kernel_path_explicit = true;
-            }
-            else if (std::strcmp (argv[i], "--verbose") == 0)
-            {
-                verbose = true;
-            }
-            else
-            {
-                print_usage (argv[0]);
-                throw std::runtime_error ("Unknown argument: " + std::string (argv[i]));
-            }
-        }
+        CLI11_PARSE (app, argc, argv);
 
-        if (!kernel_path_explicit)
-            kernel_path = resolve_default_kernel_path();
+        std::filesystem::path kernel_path = resolve_default_kernel_path();
+        if (kernel_opt->count() > 0)
+            kernel_path = kernel_path_arg;
 
         if (benchmark && benchmark_random)
         {
