@@ -100,5 +100,7 @@ if (BUILD_TESTS)
     add_dependencies (bitonic_test copy_kernels)
 
     include (GoogleTest)
-    gtest_discover_tests (bitonic_test)
+    gtest_discover_tests (bitonic_test
+        DISCOVERY_TIMEOUT 120
+    )
 endif ()
