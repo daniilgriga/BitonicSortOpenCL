@@ -71,21 +71,23 @@ This implementation supports arbitrary `N` by:
 
 ## Requirements
 
-| Dependency | Version |
-|------------|---------|
-| CMake      | >= 3.15 |
-| C++        | 17      |
-| OpenCL     | >= 1.2  |
-| CLI11      | any     |
-| GTest      | any     |
+| Dependency | Version                          |
+|------------|----------------------------------|
+| CMake      | >= 3.15                          |
+| C++        | 17                               |
+| OpenCL     | >= 1.2 (runtime + headers)       |
+| CLI11      | any                              |
+| GTest      | any (only when `BUILD_TESTS=ON`) |
 
 > [!NOTE]
 > Some OpenCL runtimes report compiler availability but still fail to build kernels (see [Known Runtime Issues](#known-runtime-issues)).
+> Recommended flow: install dependencies externally and let CMake resolve them via `find_package`.
+> Optional fallback: configure with `-DBITONIC_FETCH_DEPS=ON` to auto-fetch missing dependencies.
 
 Ubuntu packages:
 ```bash
 sudo apt-get update
-sudo apt-get install -y cmake ninja-build g++ libcli11-dev opencl-headers ocl-icd-opencl-dev pocl-opencl-icd libgtest-dev
+sudo apt-get install -y cmake ninja-build g++ libcli11-dev opencl-clhpp-headers ocl-icd-opencl-dev pocl-opencl-icd libgtest-dev
 ```
 
 Windows (vcpkg):
@@ -98,7 +100,7 @@ vcpkg install cli11:x64-windows opencl:x64-windows gtest:x64-windows
 ## Build
 
 ```bash
-# release
+# release (app only; BUILD_TESTS=OFF by default)
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 
@@ -109,10 +111,23 @@ cmake --build build
 # with sanitizers
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DBUILD_TESTS=ON -DSANITIZE=ON
 cmake --build build
+
+# Windows checker-style command (Ninja + clang)
+cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+
+# optional fallback if dependencies are not installed system-wide
+cmake -S . -B build -G Ninja -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang -DCMAKE_BUILD_TYPE=Release -DBITONIC_FETCH_DEPS=ON
+cmake --build build
 ```
 
 Binary: `build/bitonic_sort`
 Kernel source copied by CMake to: `build/kernels/bitonic.cl`
+
+### CMake layout
+
+- `CMakeLists.txt`: project targets, options, and build flow
+- `cmake/BitonicDependencies.cmake`: dependency resolution (`OpenCL`, `CLI11`, `GTest`, OpenCL C++ headers)
 
 ---
 
