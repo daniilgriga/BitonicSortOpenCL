@@ -299,3 +299,18 @@ Runtime behavior in this project:
     - error code + build status + build log
 
 This design makes CI and cross-machine debugging significantly easier.
+
+## Known Sanitizer Limitations (ROCm)
+
+On some AMD ROCm setups, `ASan/LSan` reports leaks originating in vendor runtime libraries (`/opt/rocm/lib/libamdocl64.so`, `libhsa-runtime64.so`) during OpenCL platform discovery (`clGetPlatformIDs`).
+
+Notes:
+- unit tests may pass functionally, but `ctest` fails because leak-check treats external runtime leaks as fatal;
+- stack traces point into ROCm/HSA shared libraries, not project code.
+
+Recommended local command on affected machines:
+```bash
+ASAN_OPTIONS=detect_leaks=0 ctest --test-dir build --output-on-failure
+```
+
+In CI, leak suppressions are configured for known external runtime leaks (`.github/lsan.supp`).
