@@ -27,14 +27,21 @@ find_package (OpenCL REQUIRED)
 find_package (CLI11 CONFIG QUIET)
 if (NOT TARGET CLI11::CLI11)
     find_path (CLI11_INCLUDE_DIR NAMES CLI/CLI.hpp)
-    if (NOT CLI11_INCLUDE_DIR)
-        message (FATAL_ERROR "CLI11 not found. Install libcli11-dev (Linux) or cli11:x64-windows (vcpkg).")
+    if (CLI11_INCLUDE_DIR)
+        add_library (CLI11::CLI11 INTERFACE IMPORTED)
+        set_target_properties (CLI11::CLI11 PROPERTIES
+            INTERFACE_INCLUDE_DIRECTORIES "${CLI11_INCLUDE_DIR}"
+        )
+    else ()
+        include (FetchContent)
+        FetchContent_Declare (
+            CLI11
+            GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
+            GIT_TAG        v2.4.2
+            GIT_SHALLOW    TRUE
+        )
+        FetchContent_MakeAvailable (CLI11)
     endif ()
-
-    add_library (CLI11::CLI11 INTERFACE IMPORTED)
-    set_target_properties (CLI11::CLI11 PROPERTIES
-        INTERFACE_INCLUDE_DIRECTORIES "${CLI11_INCLUDE_DIR}"
-    )
 endif ()
 
 add_executable (bitonic_sort
