@@ -6,7 +6,11 @@ set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option (SANITIZE "Enable Address and Undefined sanitizers" OFF)
-option (BUILD_TESTS "Build tests" ON)
+option (BUILD_TESTS "Build tests" OFF)
+option (BITONIC_FETCH_DEPS "Fetch missing third-party dependencies with FetchContent" ON)
+
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include (BitonicDependencies)
 
 if (MSVC)
     set (COMMON_COMPILE_OPTIONS /W4 /WX)
@@ -23,26 +27,22 @@ if (SANITIZE AND NOT MSVC)
     set (SANITIZE_FLAGS -fsanitize=address,undefined)
 endif ()
 
+add_library (bitonic_build_options INTERFACE)
+target_compile_options (bitonic_build_options INTERFACE
+    ${COMMON_COMPILE_OPTIONS}
+    ${SANITIZE_FLAGS}
+)
+target_link_options (bitonic_build_options INTERFACE
+    ${SANITIZE_FLAGS}
+)
+
 find_package (OpenCL REQUIRED)
-find_package (CLI11 CONFIG QUIET)
-if (NOT TARGET CLI11::CLI11)
-    find_path (CLI11_INCLUDE_DIR NAMES CLI/CLI.hpp)
-    if (CLI11_INCLUDE_DIR)
-        add_library (CLI11::CLI11 INTERFACE IMPORTED)
-        set_target_properties (CLI11::CLI11 PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${CLI11_INCLUDE_DIR}"
-        )
-    else ()
-        include (FetchContent)
-        FetchContent_Declare (
-            CLI11
-            GIT_REPOSITORY https://github.com/CLIUtils/CLI11.git
-            GIT_TAG        v2.4.2
-            GIT_SHALLOW    TRUE
-        )
-        FetchContent_MakeAvailable (CLI11)
-    endif ()
-endif ()
+bitonic_resolve_opencl_cpp_headers (
+    BITONIC_OPENCL_HPP_INCLUDE_DIR
+    ${OpenCL_INCLUDE_DIRS}
+    ${OpenCL_INCLUDE_DIR}
+)
+bitonic_ensure_cli11 ()
 
 add_executable (bitonic_sort
     src/main.cpp
@@ -50,26 +50,26 @@ add_executable (bitonic_sort
     src/bitonic_runner.cpp
 )
 
-target_include_directories (bitonic_sort PRIVATE src)
-
-target_link_libraries (bitonic_sort PRIVATE OpenCL::OpenCL CLI11::CLI11)
-
-target_compile_options (bitonic_sort PRIVATE
-    ${COMMON_COMPILE_OPTIONS}
-    ${SANITIZE_FLAGS}
+target_include_directories (
+    bitonic_sort PRIVATE
+    src
+    ${BITONIC_OPENCL_HPP_INCLUDE_DIR}
 )
 
-target_link_options (bitonic_sort PRIVATE
-    ${SANITIZE_FLAGS}
+target_link_libraries (
+    bitonic_sort PRIVATE
+    OpenCL::OpenCL
+    CLI11::CLI11
+    bitonic_build_options
 )
 
 # Kernels:
-set (KERNEL_SRC ${CMAKE_SOURCE_DIR}/kernels/bitonic.cl)
-set (KERNEL_DST ${CMAKE_BINARY_DIR}/kernels/bitonic.cl)
+set (KERNEL_SRC ${CMAKE_CURRENT_SOURCE_DIR}/kernels/bitonic.cl)
+set (KERNEL_DST ${CMAKE_CURRENT_BINARY_DIR}/kernels/bitonic.cl)
 
 add_custom_command (
     OUTPUT  ${KERNEL_DST}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/kernels
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/kernels
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${KERNEL_SRC} ${KERNEL_DST}
     DEPENDS ${KERNEL_SRC}
 )
@@ -88,21 +88,25 @@ if (BUILD_TESTS)
         src/bitonic_runner.cpp
     )
 
-    target_include_directories (bitonic_test PRIVATE src)
-
-    target_link_libraries (bitonic_test PRIVATE OpenCL::OpenCL)
-
-    target_compile_options (bitonic_test PRIVATE
-        ${COMMON_COMPILE_OPTIONS}
-        ${SANITIZE_FLAGS}
+    target_include_directories (
+        bitonic_test PRIVATE
+        src
+        ${BITONIC_OPENCL_HPP_INCLUDE_DIR}
     )
 
-    target_link_options (bitonic_test PRIVATE
-        ${SANITIZE_FLAGS}
+    target_link_libraries (
+        bitonic_test PRIVATE
+        OpenCL::OpenCL
+        bitonic_build_options
     )
 
-    find_package (GTest REQUIRED)
-    target_link_libraries (bitonic_test PRIVATE GTest::gtest GTest::gtest_main)
+    bitonic_resolve_gtest (BITONIC_GTEST_LIB_TARGET BITONIC_GTEST_MAIN_TARGET)
+
+    target_link_libraries (
+        bitonic_test PRIVATE
+        ${BITONIC_GTEST_LIB_TARGET}
+        ${BITONIC_GTEST_MAIN_TARGET}
+    )
 
     add_dependencies (bitonic_test copy_kernels)
 
