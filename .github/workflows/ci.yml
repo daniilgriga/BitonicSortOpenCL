@@ -1,8 +1,8 @@
 name: CI
 
 on:
-  push:
-    branches: [dev, main, "feat/**", "chore/**", "fix/**"]
+  # push:
+  #  branches: [dev, main, "feat/**", "chore/**", "fix/**"]
   pull_request:
     branches: [dev, main]
 
